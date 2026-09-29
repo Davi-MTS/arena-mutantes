@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arena · Mutante vs. Caçador</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
+  <link rel="stylesheet" href="/static/estilo.css">
+</head>
+<body>
+<div class="fundo" aria-hidden="true"></div>
+
+<!-- ============================ TOPO ============================ -->
+<header class="topo">
+  <div class="marca">
+    <span class="marca-icone">⚔️</span>
+    <div>
+      <h1>ARENA</h1>
+      <p>Mutante vs. Caçador · agentes autônomos · MCP · 100% local</p>
+    </div>
+  </div>
+  <div class="status-central">
+    <span id="status" class="chip-status aguardando">AGUARDANDO</span>
+    <span id="rotulo-rodada" class="rotulo-rodada">—</span>
+    <span id="cronometro" class="cronometro">00:00</span>
+  </div>
+  <div class="botoes-topo">
+    <button id="btn-como" class="btn fantasma" title="Como funciona (C)">❔ Como funciona</button>
+    <button id="btn-parar" class="btn perigo" disabled>■ Parar</button>
+    <button id="btn-nova" class="btn primario" title="Nova partida (N)">▶ Nova partida</button>
+    <button id="btn-tela" class="btn fantasma icone" title="Tela cheia (F)">⛶</button>
+  </div>
+</header>
+
+<!-- ============================ PLACAR ============================ -->
+<section class="placar">
+  <article class="lutador mutante" id="lutador-mutante">
+    <div class="avatar"><span>🧟</span><i class="anel"></i></div>
+    <div class="lutador-info">
+      <div class="lutador-nome">MUTANTE <small>insere bugs</small></div>
+      <div class="chip-modelo" id="modelo-mutante">—</div>
+      <div class="lutador-estado" id="estado-mutante">aguardando</div>
+      <div class="mini-stats">
+        <span><b id="tk-mutante">0</b> tok/s</span>
+        <span><b id="tokens-mutante">0</b> tokens</span>
+        <span><b id="chamadas-mutante">0</b> chamadas</span>
+        <span class="ruim"><b id="erros-mutante">0</b> erros</span>
+      </div>
+      <div class="barras" id="barras-mutante" title="tokens/s por chamada ao LLM"></div>
+    </div>
+    <div class="pontos" id="pontos-mutante">0</div>
+  </article>
+
+  <div class="centro-placar">
+    <div class="vs">VS</div>
+    <div class="pips" id="pips"></div>
+    <div class="suite" title="Testes na suíte: cresce a cada mutante abatido">🛡️ Suíte: <b id="suite-contagem">1</b> arquivo(s) de teste</div>
+  </div>
+
+  <article class="lutador cacador" id="lutador-cacador">
+    <div class="pontos" id="pontos-cacador">0</div>
+    <div class="lutador-info direita">
+      <div class="lutador-nome"><small>escreve testes</small> CAÇADOR</div>
+      <div class="chip-modelo" id="modelo-cacador">—</div>
+      <div class="lutador-estado" id="estado-cacador">aguardando</div>
+      <div class="mini-stats">
+        <span class="ruim"><b id="erros-cacador">0</b> alucinações</span>
+        <span><b id="chamadas-cacador">0</b> chamadas</span>
+        <span><b id="tokens-cacador">0</b> tokens</span>
+        <span><b id="tk-cacador">0</b> tok/s</span>
+      </div>
+      <div class="barras direita" id="barras-cacador" title="tokens/s por chamada ao LLM"></div>
+    </div>
+    <div class="avatar"><span>🏹</span><i class="anel"></i></div>
+  </article>
+</section>
+
+<!-- ============================ ARENA ============================ -->
+<main class="arena">
+  <!-- mente do Mutante -->
+  <section class="painel mente mutante">
+    <header class="painel-topo">
+      <h2>🧠 Mente do Mutante</h2>
+      <span class="passo" id="passo-mutante"></span>
+    </header>
+    <div class="ferramentas" id="ferr-mutante"></div>
+    <div class="stream" id="stream-mutante"><div class="vazio">O raciocínio do modelo aparece aqui, token a token.</div></div>
+    <div class="feed" id="feed-mutante"></div>
+  </section>
+
+  <!-- campo de batalha -->
+  <section class="painel campo">
+    <header class="painel-topo abas">
+      <button class="aba ativa" data-aba="codigo">📄 descontos.py</button>
+      <button class="aba" data-aba="teste">🧪 Teste do Caçador <span class="bolinha" id="bolinha-teste"></span></button>
+      <button class="aba" data-aba="suite">🛡️ Suíte</button>
+      <span class="legenda-campo" id="legenda-campo">especificação = docstrings</span>
+    </header>
+    <div class="aba-conteudo ativa" id="aba-codigo">
+      <div class="codigo" id="codigo"></div>
+      <div class="gabarito oculto" id="gabarito">
+        <div class="gabarito-titulo">🧟 BUG INSERIDO <small>(gabarito: o Caçador não vê isto)</small></div>
+        <div class="gabarito-linha" id="gabarito-linha"></div>
+        <div class="gabarito-prova" id="gabarito-prova"></div>
+      </div>
+    </div>
+    <div class="aba-conteudo" id="aba-teste">
+      <div class="teste-vazio" id="teste-vazio">O Caçador ainda não enviou testes nesta rodada.</div>
+      <div class="codigo" id="teste-codigo"></div>
+    </div>
+    <div class="aba-conteudo" id="aba-suite">
+      <div class="codigo" id="suite-codigo"></div>
+    </div>
+  </section>
+
+  <!-- mente do Caçador -->
+  <section class="painel mente cacador">
+    <header class="painel-topo">
+      <h2>🧠 Mente do Caçador</h2>
+      <span class="passo" id="passo-cacador"></span>
+    </header>
+    <div class="ferramentas" id="ferr-cacador"></div>
+    <div class="stream" id="stream-cacador"><div class="vazio">O raciocínio do modelo aparece aqui, token a token.</div></div>
+    <div class="feed" id="feed-cacador"></div>
+  </section>
+</main>
+
+<!-- ============================ ÁRBITRO ============================ -->
+<section class="arbitro">
+  <div class="arbitro-titulo">⚖️ <b>ÁRBITRO DETERMINÍSTICO</b><small>decide pela execução, não por IA</small></div>
+  <div class="trilha mutante">
+    <span class="trilha-rotulo">🧟</span>
+    <div class="etapa" data-etapa="m1"><i>✎</i>Proposta</div>
+    <div class="seta">›</div>
+    <div class="etapa" data-etapa="m2"><i>🔍</i>Validação AST</div>
+    <div class="seta">›</div>
+    <div class="etapa" data-etapa="m3"><i>🔀</i>Oráculo diferencial</div>
+    <div class="seta">›</div>
+    <div class="etapa" data-etapa="m4"><i>🛡️</i>Sobrevive à suíte?</div>
+  </div>
+  <div class="trilha cacador">
+    <span class="trilha-rotulo">🏹</span>
+    <div class="etapa" data-etapa="c1"><i>🧪</i>Teste enviado</div>
+    <div class="seta">›</div>
+    <div class="etapa" data-etapa="c2"><i>🔍</i>Validação AST</div>
+    <div class="seta">›</div>
+    <div class="etapa" data-etapa="c3"><i>🧠</i>Filtro de alucinação</div>
+    <div class="seta">›</div>
+    <div class="etapa" data-etapa="c4"><i>💥</i>Falha no mutante?</div>
+  </div>
+</section>
+
+<!-- ============================ LINHA DO TEMPO ============================ -->
+<footer class="linha-tempo">
+  <div class="lt-titulo">📜 Registro</div>
+  <ol id="registro"></ol>
+</footer>
+
+<!-- ============================ OVERLAYS ============================ -->
+<div id="splash" class="splash" aria-live="polite"></div>
+<div id="toasts" class="toasts"></div>
+
+<!-- Início -->
+<div class="modal" id="modal-inicio">
+  <div class="modal-caixa larga">
+    <button class="fechar" data-fechar>✕</button>
+    <div class="inicio-cabecalho">
+      <div class="inicio-icones"><span>🧟</span><b>VS</b><span>🏹</span></div>
+      <h2>Arena de Agentes Autônomos</h2>
+      <p>Dois LLMs locais competem sobre um código real. O <b class="c-m">Mutante</b> esconde um bug; o <b class="c-c">Caçador</b> escreve testes para abatê-lo. Um <b class="c-a">árbitro determinístico</b> decide cada jogada executando código.</p>
+    </div>
+    <div class="inicio-opcoes">
+      <div class="opcao">
+        <h3>🔴 Partida ao vivo</h3>
+        <p class="sutil">Roda os agentes agora, na sua GPU, via Ollama + MCP.</p>
+        <label>🧟 Modelo do Mutante <select id="sel-mutante"></select></label>
+        <label>🏹 Modelo do Caçador <select id="sel-cacador"></select></label>
+        <div class="linha-campos">
+          <label>Rodadas <input id="inp-rodadas" type="number" min="1" max="10" value="2"></label>
+          <label>Tentativas/turno <input id="inp-tentativas" type="number" min="1" max="5" value="3"></label>
+        </div>
+        <button class="btn primario grande" id="btn-iniciar">▶ Iniciar partida</button>
+        <p class="sutil pequeno">≈ 1 a 3 min por rodada numa GPU de 6 GB.</p>
+      </div>
+      <div class="opcao">
+        <h3>⏯️ Replay de partida gravada</h3>
+        <p class="sutil">Reproduz uma partida real já registrada (plano B para a demo).</p>
+        <div class="lista-gravacoes" id="lista-gravacoes"></div>
+        <label>Velocidade
+          <select id="sel-velocidade">
+            <option value="1">1× (tempo real)</option>
+            <option value="2" selected>2×</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+          </select>
+        </label>
+        <button class="btn secundario grande" id="btn-replay" disabled>⏯ Assistir replay</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Final -->
+<div class="modal" id="modal-final">
+  <div class="modal-caixa larga final">
+    <button class="fechar" data-fechar>✕</button>
+    <div class="trofeu" id="final-trofeu">🏆</div>
+    <h2 id="final-titulo">Fim de partida</h2>
+    <div class="final-placar"><span class="c-m" id="final-pm">0</span><small>×</small><span class="c-c" id="final-pc">0</span></div>
+    <div class="final-destaques" id="final-destaques"></div>
+    <table class="tabela-final" id="final-tabela"></table>
+    <div class="final-listas" id="final-listas"></div>
+    <div class="final-botoes">
+      <button class="btn fantasma" data-fechar>Ver a arena</button>
+      <button class="btn primario" id="btn-final-nova">▶ Nova partida</button>
+    </div>
+  </div>
+</div>
+
+<!-- Como funciona -->
+<div class="modal" id="modal-como">
+  <div class="modal-caixa larga">
+    <button class="fechar" data-fechar>✕</button>
+    <h2>Como funciona</h2>
+    <div class="diagrama">
+      <div class="d-col">
+        <div class="d-caixa m">🧟 Agente Mutante<small>LLM local (Ollama)</small></div>
+        <div class="d-caixa c">🏹 Agente Caçador<small>LLM local (Ollama)</small></div>
+      </div>
+      <div class="d-meio">
+        <div class="d-seta">⇄</div>
+        <div class="d-rotulo">MCP<br><small>JSON-RPC · stdio</small></div>
+      </div>
+      <div class="d-col">
+        <div class="d-caixa s">🖥️ Servidor MCP da Arena
+          <small>ler_codigo · ler_testes · propor_mutacao · enviar_teste</small>
+          <small>regras de turno impostas no servidor</small>
+        </div>
+        <div class="d-caixa a">⚖️ Árbitro determinístico
+          <small>AST · sandbox pytest · oráculo diferencial · filtro de alucinação</small>
+        </div>
+      </div>
+    </div>
+    <ol class="passos-como">
+      <li><b class="c-m">Mutante</b> lê o código e os testes e altera <b>uma linha</b> para inserir um bug sutil.</li>
+      <li>O árbitro valida (AST), prova com o <b>oráculo diferencial</b> que o comportamento mudou (~5 mil entradas) e exige que o bug <b>sobreviva à suíte</b> atual.</li>
+      <li><b class="c-c">Caçador</b> lê o código com bug (sem saber a linha) e escreve testes a partir das docstrings (a especificação).</li>
+      <li>Testes que falham no código <b>correto</b> são <b>alucinações</b> e vão para o lixo. Os válidos precisam falhar no mutante para abatê-lo.</li>
+      <li>Testes vencedores entram na suíte, e o próximo Mutante enfrenta uma defesa mais forte.</li>
+    </ol>
+    <div class="seguranca">
+      <h3>🔒 Segurança</h3>
+      <ul>
+        <li><b>Anti prompt-injection entre agentes:</b> comentários e strings longas são proibidos nas mutações.</li>
+        <li><b>Sandbox:</b> subprocesso isolado, pasta temporária, timeout, sem <code>os</code>/<code>open</code>/<code>eval</code>.</li>
+        <li><b>Sem vazamento de credenciais:</b> o servidor e a sandbox recebem um ambiente limpo.</li>
+        <li><b>Limites de autonomia:</b> ferramentas permitidas por papel, máximo de passos e de tentativas.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

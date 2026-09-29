@@ -1,146 +1,164 @@
-# Arena de Agentes: Mutante vs. Caçador
+# ⚔️ Arena de Agentes: Mutante vs. Caçador
 
-> N2 – Tecnologias Emergentes (SENAI FATESG) · **Proposta 1: Arquitetura Orientada a Agentes Autônomos de Código e MCP**
+> **N2 – Tecnologias Emergentes** · SENAI FATESG · Curso de Tecnologia em Inteligência Artificial
+> **Proposta 1:** Arquitetura Orientada a Agentes Autônomos de Código e Model Context Protocol (MCP)
 
-Dois agentes autônomos de IA **jogam um contra o outro** sobre um código real:
+Dois agentes de IA **competem** sobre um código real, e um árbitro que **executa código** decide quem venceu cada jogada.
 
-- 🧟 **Mutante**: insere um bug sutil no código, tentando escapar dos testes existentes.
-- 🏹 **Caçador**: lê o código e a especificação (docstrings) e escreve testes automatizados para "matar" o bug.
+| 🧟 **Mutante** | 🏹 **Caçador** | ⚖️ **Árbitro** |
+|---|---|---|
+| Insere um **bug sutil** numa linha do código, tentando escapar dos testes existentes | Lê o código com bug e a especificação (docstrings) e **escreve testes** para "matar" o bug | **Não é IA.** Valida, executa os testes numa sandbox e descarta os testes **alucinados** |
 
-Quem decide cada jogada é um **árbitro determinístico que executa código** (pytest + oráculo diferencial), **nunca um LLM**. Cada teste que mata um mutante entra na suíte, que vai ficando mais forte a cada rodada (autojogo adversarial, no estilo *mutation testing*).
+Tudo roda **100% local**: modelos abertos via [Ollama](https://ollama.com), ferramentas expostas por um **servidor MCP**. Sem API paga e sem internet durante a execução.
 
-Tudo roda **100% local**: modelos abertos via **Ollama**, ferramentas expostas via **Model Context Protocol (MCP)**. Não usa API paga nem precisa de internet durante a execução.
-
----
-
-## Arquitetura
-
-```
-┌────────────────────────── arena.py (orquestrador / cliente MCP) ──────────────────────────┐
-│                                                                                           │
-│  🧟 Agente Mutante ──┐       lista de permissões por papel          ┌── 🏹 Agente Caçador   │
-│  (LLM local, Ollama) │  (cada agente só vê as ferramentas dele)     │  (LLM local, Ollama)  │
-│                      ▼                                              ▼                     │
-│              ler_codigo · ler_testes · propor_mutacao | enviar_teste                      │
-│                                                                                           │
-│  logs/<partida>/agentes.jsonl  ← cada resposta do LLM, chamada de ferramenta e resultado  │
-└──────────────────────────────────────────┬────────────────────────────────────────────────┘
-                                           │ MCP (JSON-RPC via stdio)
-┌──────────────────────────────────────────▼────────────────────────────────────────────────┐
-│ servidor_arena.py (servidor MCP)                                                          │
-│   estado do jogo · regras de turno impostas no servidor · ferramentas admin_* (só do     │
-│   orquestrador)                                                                           │
-│                                   │                                                       │
-│                    arbitro.py (árbitro determinístico)                                    │
-│   ├─ validação estática (AST): linhas editáveis, imports/nomes proibidos, comentários     │
-│   ├─ oráculo diferencial: original vs. mutante em ~5.000 entradas → rejeita equivalentes │
-│   ├─ sandbox: pytest em subprocesso, pasta temporária, timeout, ambiente sem segredos     │
-│   └─ filtro de alucinação: descarta testes que falham no código CORRETO                   │
-│                                                                                           │
-│  logs/<partida>/arbitro.jsonl ← veredito de cada jogada, com evidências                   │
-└───────────────────────────────────────────────────────────────────────────────────────────┘
-          campo/descontos.py (código em disputa: regras de preço de uma distribuidora)
-```
-
-### Fluxo de uma rodada
-1. O orquestrador chama `admin_nova_rodada` e o código volta ao original.
-2. **Turno do Mutante**, com até N tentativas:
-   1. `ler_codigo` e `ler_testes`;
-   2. `propor_mutacao(linha, nova_linha, justificativa)`;
-   3. o árbitro valida a sintaxe e as regras, prova com o oráculo que o comportamento mudou e roda a suíte. O mutante só "nasce" se **sobreviver** à suíte.
-3. **Turno do Caçador**, com até N tentativas:
-   1. `ler_codigo` mostra o código com bug; as docstrings são a especificação;
-   2. `enviar_teste(codigo)`;
-   3. o árbitro descarta as funções de teste que falham no código correto (alucinações) e verifica se as válidas falham no mutante.
-4. Pontua quem venceu. Os testes que mataram o mutante entram na suíte da próxima rodada.
+![Painel da Arena: bug inserido e o Caçador escrevendo testes ao vivo](docs/img/painel-bug-inserido.jpg)
 
 ---
 
-## Pré-requisitos
-- Python 3.10+
-- [Ollama](https://ollama.com) instalado e rodando
-- GPU com ~6 GB de VRAM recomendada (também roda em CPU, mais devagar)
+## Sumário
+- [Como rodar (3 passos)](#-como-rodar-3-passos)
+- [Como usar o painel](#-como-usar-o-painel)
+- [Como funciona](#-como-funciona-em-1-minuto)
+- [O que tem em cada pasta](#-o-que-tem-em-cada-pasta)
+- [Resultados](#-resultados)
+- [Documentação completa](#-documentação-completa)
 
-## Execução passo a passo
+---
+
+## 🚀 Como rodar (3 passos)
+
+**Pré-requisitos:** Python 3.10+, [Ollama](https://ollama.com) e, de preferência, uma GPU com ~6 GB de VRAM (em CPU também roda, só mais devagar).
+
 ```bash
-# 1. dependências Python
+# 1. instalar as dependências Python
 pip install -r requirements.txt
 
-# 2. modelos locais (uma vez, precisa de internet só aqui)
+# 2. baixar o modelo local (só na primeira vez; é a única etapa que usa internet)
 ollama pull qwen2.5-coder:7b
-ollama pull qwen3:4b
 
-# 3. partida (funciona offline)
-python arena.py --rodadas 3
-
-# modelos diferentes em cada lado (duelo de modelos)
-python arena.py --rodadas 3 --modelo-mutante qwen3:4b --modelo-cacador qwen2.5-coder:7b
+# 3. abrir o painel → http://localhost:8000
+python painel.py
 ```
 
-| Opção | Padrão | Significado |
+No Windows, dá para usar só o **`iniciar_painel.bat`** (dois cliques): ele pré-carrega o modelo na GPU e abre o painel.
+
+Para ver a partida no terminal, sem o painel:
+
+```bash
+python arena.py --rodadas 3
+```
+
+| Opção (`arena.py`) | Padrão | Significado |
 |---|---|---|
 | `--rodadas` | 3 | número de rodadas |
 | `--modelo` | `qwen2.5-coder:7b` | modelo dos dois agentes |
-| `--modelo-mutante` / `--modelo-cacador` | – | modelo específico de cada lado |
-| `--max-passos` | 12 | **limite de autonomia**: chamadas ao LLM por turno |
+| `--modelo-mutante` / `--modelo-cacador` | – | um modelo diferente para cada lado (duelo de modelos) |
 | `--tentativas` | 3 | jogadas por turno antes de perder a rodada |
+| `--max-passos` | 12 | **limite de autonomia**: chamadas ao LLM por turno |
 | `--num-ctx` | 6144 | janela de contexto (ajuste à sua VRAM) |
-
-## Saídas (logs estruturados)
-Cada partida cria `logs/<data_hora>/` com:
-- `agentes.jsonl`: cada resposta do LLM (texto, chamada extraída, tokens, tokens/s, tempo) e cada chamada ou resultado de ferramenta;
-- `arbitro.jsonl`: cada veredito (mutação aceita ou rejeitada e o motivo, testes alucinados descartados, mutante morto, fim de rodada);
-- `resumo.json`: placar, métricas por agente, contagem de erros e alucinações barrados.
-
-### Partida de exemplo
-[`exemplos/partida_3_rodadas/`](exemplos/partida_3_rodadas/) guarda os logs completos de uma partida real (Qwen2.5-Coder 7B nos dois lados, GTX 1660 Super, ~24 tokens/s, 252 s):
-
-| Rodada | Bug inserido pelo Mutante | Resultado |
-|---|---|---|
-| 1 | frete de outra UF: `return 40.0` → expressão com variável inexistente | 🏹 Caçador matou (5 de 9 testes enviados eram alucinados e foram descartados) |
-| 2 | tentou trocar o `if` por um `return` três vezes (erro de sintaxe repetido) | 🏹 Caçador (Mutante esgotou as tentativas) |
-| 3 | desconto de 50 unidades: `0.05` → `0.1` | 🧟 Mutante sobreviveu (Caçador testou 49, não 50) |
-
-**Placar: Caçador 2 × 1 Mutante.** Das 60 funções de teste enviadas em envios com alucinação, **26 tinham valor esperado inventado** e foram descartadas pelo árbitro.
 
 ---
 
-## Decisões de projeto
-| Decisão | Motivo |
-|---|---|
-| **Árbitro por execução, não por LLM** | LLMs alucinam. Pytest e oráculo diferencial são objetivos e reprodutíveis. |
-| **MCP como fronteira** | O agente só age sobre o mundo por ferramentas padronizadas e auditáveis. Trocar o modelo não muda o servidor. |
-| **Regras impostas no servidor** | Se o prompt for ignorado ou manipulado, o servidor ainda recusa jogadas fora do turno. |
-| **Oráculo diferencial** | Rejeita mutantes equivalentes (que não mudam o comportamento e seriam impossíveis de matar). |
-| **Filtro de alucinação por função de teste** | Um `assert` com expectativa inventada é descartado sem invalidar os testes corretos do mesmo envio. |
-| **Parser de reserva para tool calls** | Modelos pequenos (ex.: Qwen2.5-Coder 7B) às vezes "escrevem" a chamada como JSON no texto em vez de usar o formato nativo. |
-| **Modelos locais quantizados (Q4)** | Custo zero, privacidade, sem dependência de rede. Roda numa GTX 1660 Super (6 GB). |
-| **SDK MCP fixado em `<2`** | A v2 do SDK renomeou APIs (`FastMCP` virou `MCPServer`). A v1 é estável para a entrega. |
+## 🏟️ Como usar o painel
 
-## Segurança
-| Ameaça | Mitigação |
-|---|---|
-| Código gerado por IA tentando fugir da sandbox ou ler segredos | Validação AST (sem `import os`, `open`, `eval`, `__import__`, `environ`...), subprocesso isolado, pasta temporária, timeout |
-| Vazamento de credenciais | Servidor MCP e sandbox recebem só `PATH`/`SYSTEMROOT`/`TEMP`; nenhuma variável do usuário (tokens, chaves) é repassada |
-| *Prompt injection* entre agentes (o Mutante escrever `# ignore as instruções...` no código que o Caçador vai ler) | Comentários e strings longas são proibidos em mutações |
-| Agente usando ferramenta de outro papel ou do orquestrador | Lista de permissões por papel no cliente e checagem de turno no servidor. Ferramentas `admin_*` nunca são expostas ao LLM |
-| Autonomia sem limite (loops, custo) | `--max-passos` por turno e `--tentativas` por jogada, com timeout em toda execução |
-| Caçador usando o código correto como oráculo | Quando um teste falha no original, o árbitro **não** revela o valor esperado |
+1. Ao abrir, escolha entre **Partida ao vivo** (os agentes jogam agora na sua GPU) ou **Replay** de uma partida gravada.
+2. Acompanhe:
+   - **Placar**: pontos, tokens/s, tokens, chamadas e erros de cada agente.
+   - **Mente do agente**: o texto do modelo aparece token a token; as ferramentas MCP acendem quando usadas.
+   - **Campo de batalha**: o código; o bug aparece com a linha original riscada e a prova do oráculo.
+   - **Aba de testes**: cada teste do Caçador marcado como ✓ válido, válido mas não detecta, ou ✗ **alucinação**.
+   - **Trilha do árbitro**: cada etapa da validação acende em verde ou vermelho.
+3. No final aparece a **tela de resultados**, com as métricas comparadas.
 
-## Estrutura
+**Atalhos:** `F` tela cheia · `N` nova partida · `C` como funciona · `1` `2` `3` abas.
+
+| Início | Filtro de alucinação | Tela final |
+|---|---|---|
+| ![início](docs/img/painel-inicio.jpg) | ![alucinação](docs/img/painel-filtro-alucinacao.jpg) | ![final](docs/img/painel-tela-final.jpg) |
+
+> 💡 **Plano B para apresentações:** se a partida ao vivo demorar, use o **Replay** a 2× ou 4×. Recarregar a página não perde nada.
+
+---
+
+## 🧠 Como funciona (em 1 minuto)
+
+```
+ 🧟 Mutante (LLM local) ─┐                                      ┌─ 🏹 Caçador (LLM local)
+                         │   MCP (cada um só vê as ferramentas  │
+                         └──►   do seu papel)                ◄──┘
+                   ┌─────────────────────────────────────────────┐
+                   │  Servidor MCP da Arena  (regras do jogo)    │
+                   │   └─ ⚖️ Árbitro: AST · oráculo · pytest     │
+                   └─────────────────────────────────────────────┘
+                              campo/descontos.py
+```
+
+1. O **Mutante** usa `ler_codigo` e `ler_testes` e depois `propor_mutacao`, por exemplo: "na linha 15, troque `>=` por `>`".
+2. O **árbitro** confere três coisas:
+   - a mudança é válida (sintaxe, linha permitida, sem comentários);
+   - o comportamento muda de verdade (o **oráculo diferencial** testa ~5 mil entradas);
+   - o bug **sobrevive** aos testes atuais. Só então o mutante nasce.
+3. O **Caçador** lê o código com bug, sem saber qual linha mudou, e usa `enviar_teste`.
+4. O **árbitro** roda cada teste no código **correto**. Os que falham ali são **alucinações** e vão para o lixo. Os válidos precisam falhar no mutante para abatê-lo.
+5. Quem vencer pontua. Os testes vencedores entram na suíte, e o próximo Mutante enfrenta uma defesa mais forte.
+
+➡️ Detalhes em [docs/arquitetura.md](docs/arquitetura.md).
+
+---
+
+## 📁 O que tem em cada pasta
+
 ```
 arena-mutantes/
-├── arena.py            # orquestrador + agentes (cliente MCP + Ollama)
-├── servidor_arena.py   # servidor MCP com as ferramentas e regras do jogo
-├── arbitro.py          # validação, sandbox, oráculo diferencial, filtro de alucinação
-├── campo/
-│   ├── descontos.py    # código em disputa
-│   └── test_base.py    # suíte inicial (propositalmente fraca)
-├── logs/               # gerado a cada partida
-└── requirements.txt
+├── README.md                 ← você está aqui
+├── requirements.txt          ← dependências Python
+├── iniciar_painel.bat        ← atalho Windows: pré-carrega o modelo e abre o painel
+│
+├── arena.py                  ← AGENTES + orquestrador (cliente MCP + Ollama); também roda no terminal
+├── servidor_arena.py         ← SERVIDOR MCP: ferramentas do jogo e regras de turno
+├── arbitro.py                ← ÁRBITRO: validação AST, sandbox pytest, oráculo, filtro de alucinação
+├── painel.py                 ← servidor do PAINEL visual (FastAPI + SSE): ao vivo e replay
+├── painel/                   ← interface web (HTML/CSS/JS puros, funciona offline)
+│
+├── campo/                    ← o código em disputa
+│   ├── descontos.py          ←   regras de preço de uma distribuidora (as docstrings são a especificação)
+│   └── test_base.py          ←   suíte inicial, propositalmente fraca
+│
+├── exemplos/                 ← partidas reais gravadas (logs completos + replay no painel)
+├── docs/                     ← documentação detalhada e imagens
+└── logs/                     ← criado a cada partida (fora do Git)
 ```
 
-## Trabalhos futuros
-- **Arena completa**: torneio entre vários modelos com rating Elo.
-- Novos jogos: Fuzzer vs. Validador, Código trapaceiro vs. Revisor, Arena de *prompt injection*.
-- Painel web para acompanhar as partidas ao vivo.
+---
+
+## 📊 Resultados
+
+Métricas de partidas reais na GTX 1660 Super (6 GB) com o Qwen2.5-Coder 7B quantizado em 4 bits:
+
+| Métrica | Valor observado |
+|---|---|
+| Velocidade de geração | ~22–25 tokens/s |
+| Duração de uma rodada | ~1 a 4 min |
+| Tool calls no formato nativo do Ollama | **0%**: o modelo sempre escreve o JSON no texto (daí o parser de reserva) |
+| Testes do Caçador com valor esperado inventado | frequentemente **mais da metade**, todos barrados pelo árbitro |
+
+A partida completa gravada está em [`exemplos/`](exemplos/) e pode ser assistida no painel pelo **Replay**.
+
+**Principal lição:** o desenho da ferramenta importou tanto quanto o modelo. Trocar "reescreva a linha" por "troque o trecho X por Y" fez o Mutante passar de quase nunca conseguir jogar para acertar de primeira. Veja [docs/decisoes-e-licoes.md](docs/decisoes-e-licoes.md).
+
+---
+
+## 📚 Documentação completa
+
+| Documento | Conteúdo |
+|---|---|
+| [docs/arquitetura.md](docs/arquitetura.md) | Componentes, fluxo de uma rodada, ferramentas MCP, laço agêntico, eventos e logs |
+| [docs/seguranca.md](docs/seguranca.md) | Prompt injection, sandbox, credenciais, limites de autonomia, detecção de alucinações |
+| [docs/decisoes-e-licoes.md](docs/decisoes-e-licoes.md) | Decisões de projeto, evolução durante o desenvolvimento, lições sobre modelos locais, trabalhos futuros |
+| [docs/roteiro-apresentacao.md](docs/roteiro-apresentacao.md) | Roteiro da apresentação de 15 minutos, com plano B |
+
+---
+
+## 🛠️ Tecnologias
+
+Python · [Model Context Protocol](https://modelcontextprotocol.io) (SDK Python 1.x) · [Ollama](https://ollama.com) · Qwen2.5-Coder 7B (Q4) · pytest · FastAPI · Server-Sent Events · HTML/CSS/JS puros

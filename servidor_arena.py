@@ -82,8 +82,10 @@ def ler_testes() -> str:
 
 
 @mcp.tool()
-def propor_mutacao(numero_linha: int, nova_linha: str, justificativa: str = "") -> str:
-    """[MUTANTE] Substitui UMA linha de descontos.py por uma versão com bug sutil.
+def propor_mutacao(numero_linha: int, trecho_original: str, trecho_novo: str, justificativa: str = "") -> str:
+    """[MUTANTE] Na linha `numero_linha` de descontos.py, troca `trecho_original`
+    (um pedaço EXATO dessa linha, ex.: '>=', '0.10', '"GO"', '300') por `trecho_novo`
+    (ex.: '>', '0.15', '"DF"', '30'), inserindo um bug sutil.
     Regras: não pode alterar docstrings nem 'def'; sem comentários; o mutante
     precisa mudar o comportamento E passar em todos os testes atuais."""
     if estado["turno"] != "mutante":
@@ -94,8 +96,18 @@ def propor_mutacao(numero_linha: int, nova_linha: str, justificativa: str = "") 
     restantes = MAX_TENTATIVAS - estado["tentativas"]
 
     def rejeitar(motivo: str, detalhe: str) -> str:
+        # Feedback acionável: mostra a linha original para o agente manter a estrutura.
+        linhas = ORIGINAL.splitlines()
+        if isinstance(numero_linha, int) and 1 <= numero_linha <= len(linhas) and motivo in (
+                "erro_sintaxe", "sem_mudanca", "multiplas_linhas", "trecho_nao_encontrado"):
+            detalhe += (f" | A linha {numero_linha} é: `{linhas[numero_linha - 1].strip()}`. "
+                        "Use em trecho_original um pedaço EXATO dessa linha (ex.: um operador ou uma constante).")
+        elif motivo == "linha_proibida":
+            editaveis = sorted(arbitro.linhas_editaveis(ORIGINAL))
+            detalhe += f" | Linhas editáveis: {editaveis}."
         _log("mutacao_rejeitada", tentativa=estado["tentativas"], motivo=motivo, detalhe=detalhe,
-             numero_linha=numero_linha, nova_linha=nova_linha, justificativa=justificativa)
+             numero_linha=numero_linha, trecho_original=trecho_original, trecho_novo=trecho_novo,
+             justificativa=justificativa)
         if restantes <= 0:
             _encerrar("cacador", f"Mutante esgotou as tentativas (última: {motivo})")
             return _resp(aceita=False, motivo=motivo, detalhe=detalhe, tentativas_restantes=0,
@@ -108,7 +120,30 @@ def propor_mutacao(numero_linha: int, nova_linha: str, justificativa: str = "") 
     except (TypeError, ValueError):
         return rejeitar("argumento_invalido", "numero_linha precisa ser inteiro")
 
-    veredito, mutado = arbitro.validar_mutacao(ORIGINAL, numero_linha, str(nova_linha))
+    linhas = ORIGINAL.splitlines()
+    if not 1 <= numero_linha <= len(linhas):
+        return rejeitar("linha_proibida", f"a linha {numero_linha} não existe")
+    trecho_original, trecho_novo = str(trecho_original or ""), str(trecho_novo or "")
+    # Ancoragem pelo CONTEÚDO (como str_replace): modelos pequenos erram o número
+    # da linha por ±1, mas acertam o trecho. O número só desempata.
+    candidatas = [n for n in sorted(arbitro.linhas_editaveis(ORIGINAL))
+                  if trecho_original and trecho_original in linhas[n - 1]]
+    if not candidatas:
+        return rejeitar("trecho_nao_encontrado",
+                        f"o trecho '{trecho_original}' não aparece em nenhuma linha de código editável")
+    if numero_linha not in candidatas:
+        proximas = [n for n in candidatas if abs(n - numero_linha) <= 3]
+        if len(candidatas) == 1:
+            numero_linha = candidatas[0]
+        elif len(proximas) == 1:
+            numero_linha = proximas[0]
+        else:
+            return rejeitar("trecho_ambiguo",
+                            f"o trecho '{trecho_original}' aparece nas linhas {candidatas}; indique a certa")
+    # Edição por substituição (como ferramentas str_replace de agentes de código):
+    # preserva indentação e estrutura, e o modelo só decide O QUE trocar.
+    nova_linha = linhas[numero_linha - 1].replace(trecho_original, trecho_novo, 1)
+    veredito, mutado = arbitro.validar_mutacao(ORIGINAL, numero_linha, nova_linha)
     if not veredito.ok:
         return rejeitar(veredito.motivo, veredito.detalhe)
 
@@ -122,7 +157,9 @@ def propor_mutacao(numero_linha: int, nova_linha: str, justificativa: str = "") 
         return rejeitar("morto_pela_suite", f"os testes atuais já detectam esse bug:\n{saida[-600:]}")
 
     estado["codigo_atual"] = mutado
-    estado["mutacao"] = {"linha": numero_linha, "descricao": veredito.detalhe, "evidencia": evidencia}
+    estado["mutacao"] = {"linha": numero_linha, "descricao": veredito.detalhe, "evidencia": evidencia,
+                         "antiga": ORIGINAL.splitlines()[numero_linha - 1],
+                         "nova": mutado.splitlines()[numero_linha - 1]}
     estado["turno"] = None
     _log("mutacao_aceita", tentativa=estado["tentativas"], descricao=veredito.detalhe,
          evidencia_oraculo=evidencia, justificativa=justificativa)
@@ -142,17 +179,24 @@ def enviar_teste(codigo: str, justificativa: str = "") -> str:
     estado["tentativas"] += 1
     restantes = MAX_TENTATIVAS - estado["tentativas"]
 
-    def falhar(motivo: str, detalhe: str, detalhe_log: str = "") -> str:
+    def falhar(motivo: str, detalhe: str, detalhe_log: str = "", **extra) -> str:
         _log("teste_rejeitado", tentativa=estado["tentativas"], motivo=motivo,
              detalhe=detalhe_log or detalhe, codigo=codigo, justificativa=justificativa)
         if restantes <= 0:
             _encerrar("mutante", f"Caçador esgotou as tentativas (última: {motivo})")
             return _resp(matou=False, motivo=motivo, detalhe=detalhe, tentativas_restantes=0,
-                         turno_encerrado=True)
+                         turno_encerrado=True, **extra)
         return _resp(matou=False, motivo=motivo, detalhe=detalhe, tentativas_restantes=restantes,
-                     turno_encerrado=False)
+                     turno_encerrado=False, **extra)
 
-    veredito = arbitro.validar_teste(str(codigo))
+    codigo = str(codigo)
+    # Modelos pequenos às vezes escapam duas vezes o JSON: o código chega com "\n"
+    # literais em vez de quebras de linha. Normalizamos (e registramos o fato).
+    if codigo.count("\\n") > codigo.count("\n"):
+        _log("entrada_normalizada", tipo="escape_duplo", literais=codigo.count("\\n"))
+        codigo = codigo.replace("\\r", "").replace("\\n", "\n").replace("\\t", "    ").replace('\\"', '"')
+
+    veredito = arbitro.validar_teste(codigo)
     if not veredito.ok:
         return falhar(veredito.motivo, veredito.detalhe)
 
@@ -170,7 +214,7 @@ def enviar_teste(codigo: str, justificativa: str = "") -> str:
         return falhar("expectativa_errada",
                       f"todos os seus {len(todas)} testes FALHAM no código correto: as expectativas contradizem "
                       "a especificação (docstrings). Recalcule os valores esperados pela docstring.",
-                      detalhe_log=saida_original)
+                      detalhe_log=saida_original, funcoes_validas=[], funcoes_alucinadas=sorted(alucinados))
     codigo_filtrado = arbitro.remover_funcoes(codigo, alucinados) if alucinados else codigo
     aviso = (f" {len(alucinados)} de {len(todas)} testes foram descartados por contradizerem a especificação: "
              f"{sorted(alucinados)}." if alucinados else "")
@@ -179,14 +223,15 @@ def enviar_teste(codigo: str, justificativa: str = "") -> str:
     ok_mutante, saida_mutante = arbitro.rodar_pytest(estado["codigo_atual"], {nome: codigo_filtrado})
     if ok_mutante:
         return falhar("nao_detectou", "seus testes válidos passam no código com bug: não detectam o mutante."
-                      + aviso + " O bug está em outra regra ou outro valor-limite: cubra mais funções e limites.")
+                      + aviso + " O bug está em outra regra ou outro valor-limite: cubra mais funções e limites.",
+                      funcoes_validas=validos, funcoes_alucinadas=sorted(alucinados))
 
     estado["testes_aceitos"][nome] = codigo_filtrado
     _log("mutante_morto", tentativa=estado["tentativas"], teste=nome, saida=saida_mutante,
          validos=len(validos), descartados=len(alucinados), justificativa=justificativa)
     _encerrar("cacador", "teste do Caçador matou o mutante")
     return _resp(matou=True, detalhe="mutante morto! seus testes válidos entraram na suíte." + aviso,
-                 turno_encerrado=True)
+                 turno_encerrado=True, funcoes_validas=validos, funcoes_alucinadas=sorted(alucinados))
 
 
 # ----------------------------------------- ferramentas do orquestrador (admin)

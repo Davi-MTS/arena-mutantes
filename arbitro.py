@@ -169,6 +169,8 @@ def rodar_pytest(codigo_alvo: str, testes: dict[str, str], extra: list[str] | No
         except subprocess.TimeoutExpired:
             return False, "TIMEOUT: testes excederam o limite de tempo"
         saida = (r.stdout + r.stderr).strip()
+        # Não vazar caminhos locais (nome de usuário) para o agente, o painel ou os logs.
+        saida = saida.replace(str(p), "<sandbox>").replace(pasta, "<sandbox>")
         return r.returncode == 0, saida[-1500:]
 
 
