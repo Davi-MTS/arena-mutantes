@@ -17,6 +17,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 import arbitro
+import progresso
 
 RAIZ = Path(__file__).parent
 ORIGINAL = (RAIZ / "campo" / "descontos.py").read_text(encoding="utf-8")
@@ -24,6 +25,13 @@ TESTES_BASE = {"test_base.py": (RAIZ / "campo" / "test_base.py").read_text(encod
 MAX_TENTATIVAS = int(os.environ.get("ARENA_MAX_TENTATIVAS", "3"))
 LOG_ARBITRO = Path(os.environ.get("ARENA_LOG_ARBITRO", RAIZ / "logs" / "arbitro.jsonl"))
 LOG_ARBITRO.parent.mkdir(parents=True, exist_ok=True)
+# Suíte persistente: testes vencedores de partidas anteriores entram na defesa.
+# Cada lado evolui de forma independente (dá para ligar só um e comparar).
+EVOLUI_DEFESA = os.environ.get("ARENA_EVOLUI_DEFESA", "1") == "1"   # testes vencedores são herdados
+EVOLUI_ATAQUE = os.environ.get("ARENA_EVOLUI_ATAQUE", "1") == "1"   # Mutante guarda memória de ataques
+PARTIDA = os.environ.get("ARENA_PARTIDA", time.strftime("%Y%m%d_%H%M%S"))
+HERDADOS = progresso.carregar_herdados() if EVOLUI_DEFESA else {}
+LIMITE_LER_TESTES = 3500  # caracteres; acima disso o Mutante recebe um resumo (contexto de 6k tokens)
 
 estado = {
     "rodada": 0,
@@ -31,7 +39,8 @@ estado = {
     "codigo_atual": ORIGINAL,
     "mutacao": None,
     "tentativas": 0,
-    "testes_aceitos": {},     # testes do Caçador que mataram mutantes (a suíte evolui)
+    "testes_aceitos": {},     # testes do Caçador que mataram mutantes NESTA partida
+    "persistidos": [],        # arquivos salvos em progresso/suite nesta partida
     "placar": {"mutante": 0, "cacador": 0},
     "resultado_rodada": None,
 }
@@ -50,10 +59,30 @@ def _resp(**dados) -> str:
 
 
 def _suite() -> dict[str, str]:
-    return {**TESTES_BASE, **estado["testes_aceitos"]}
+    return {**TESTES_BASE, **HERDADOS, **estado["testes_aceitos"]}
+
+
+def _resumo_da_suite(suite: dict[str, str]) -> str:
+    """Suíte grande demais para o contexto: mostra só as asserções, sem repetição."""
+    vistos, asserts = set(), []
+    for codigo in suite.values():
+        for linha in codigo.splitlines():
+            linha = linha.strip()
+            if linha.startswith("assert") and linha not in vistos:
+                vistos.add(linha)
+                asserts.append(linha)
+    corpo = "\n".join(asserts[:60])
+    extra = f"\n... e mais {len(asserts) - 60} asserções" if len(asserts) > 60 else ""
+    return (f"(suíte grande: {len(suite)} arquivos de teste, nível {progresso.nivel(len(HERDADOS))}. "
+            f"Mostrando só as {min(len(asserts), 60)} asserções distintas.)\n{corpo}{extra}")
 
 
 def _encerrar(vencedor: str, motivo: str) -> None:
+    # Memória do Mutante: o destino do mutante desta rodada vira lição para as próximas.
+    m = estado["mutacao"]
+    if EVOLUI_ATAQUE and m:
+        progresso.registrar_ataque(PARTIDA, estado["rodada"], m["linha"], m["trecho_original"],
+                                   m["trecho_novo"], "sobreviveu" if vencedor == "mutante" else "abatido", motivo)
     estado["placar"][vencedor] += 1
     estado["turno"] = None
     estado["resultado_rodada"] = {"vencedor": vencedor, "motivo": motivo}
@@ -78,7 +107,9 @@ def ler_codigo() -> str:
 @mcp.tool()
 def ler_testes() -> str:
     """Retorna todos os testes automatizados atuais da suíte."""
-    return "\n\n".join(f"# ===== {nome} =====\n{codigo}" for nome, codigo in _suite().items())
+    suite = _suite()
+    completo = "\n\n".join(f"# ===== {nome} =====\n{codigo}" for nome, codigo in suite.items())
+    return completo if len(completo) <= LIMITE_LER_TESTES else _resumo_da_suite(suite)
 
 
 @mcp.tool()
@@ -108,6 +139,9 @@ def propor_mutacao(numero_linha: int, trecho_original: str, trecho_novo: str, ju
         _log("mutacao_rejeitada", tentativa=estado["tentativas"], motivo=motivo, detalhe=detalhe,
              numero_linha=numero_linha, trecho_original=trecho_original, trecho_novo=trecho_novo,
              justificativa=justificativa)
+        if EVOLUI_ATAQUE and isinstance(numero_linha, int) and trecho_original:
+            progresso.registrar_ataque(PARTIDA, estado["rodada"], numero_linha, str(trecho_original),
+                                       str(trecho_novo), motivo, detalhe)
         if restantes <= 0:
             _encerrar("cacador", f"Mutante esgotou as tentativas (última: {motivo})")
             return _resp(aceita=False, motivo=motivo, detalhe=detalhe, tentativas_restantes=0,
@@ -158,6 +192,7 @@ def propor_mutacao(numero_linha: int, trecho_original: str, trecho_novo: str, ju
 
     estado["codigo_atual"] = mutado
     estado["mutacao"] = {"linha": numero_linha, "descricao": veredito.detalhe, "evidencia": evidencia,
+                         "trecho_original": trecho_original, "trecho_novo": trecho_novo,
                          "antiga": ORIGINAL.splitlines()[numero_linha - 1],
                          "nova": mutado.splitlines()[numero_linha - 1]}
     estado["turno"] = None
@@ -227,6 +262,11 @@ def enviar_teste(codigo: str, justificativa: str = "") -> str:
                       funcoes_validas=validos, funcoes_alucinadas=sorted(alucinados))
 
     estado["testes_aceitos"][nome] = codigo_filtrado
+    if EVOLUI_DEFESA:
+        salvo = progresso.salvar_teste(PARTIDA, estado["rodada"], codigo_filtrado)
+        if salvo:
+            estado["persistidos"].append(salvo)
+            _log("teste_persistido", arquivo=salvo)
     _log("mutante_morto", tentativa=estado["tentativas"], teste=nome, saida=saida_mutante,
          validos=len(validos), descartados=len(alucinados), justificativa=justificativa)
     _encerrar("cacador", "teste do Caçador matou o mutante")
@@ -272,7 +312,12 @@ def admin_estado() -> str:
     """[ORQUESTRADOR] Placar e resultado da última rodada (inclui o gabarito)."""
     return _resp(rodada=estado["rodada"], placar=estado["placar"], mutacao=estado["mutacao"],
                  resultado_rodada=estado["resultado_rodada"],
-                 testes_aceitos=list(estado["testes_aceitos"]))
+                 testes_aceitos=list(estado["testes_aceitos"]),
+                 evolui_defesa=EVOLUI_DEFESA, evolui_ataque=EVOLUI_ATAQUE, nivel_inicial=progresso.nivel(len(HERDADOS)),
+                 nivel_ataque=progresso.nivel_ataque() if EVOLUI_ATAQUE else 1,
+                 herdados=[{"nome": n, "codigo": c} for n, c in HERDADOS.items()],
+                 nivel_defesa=progresso.nivel(len(HERDADOS)) + len(estado["persistidos"]),
+                 persistidos=estado["persistidos"])
 
 
 if __name__ == "__main__":

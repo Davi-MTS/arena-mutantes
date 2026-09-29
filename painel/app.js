@@ -55,6 +55,7 @@ function estadoInicial() {
     },
     linhas: [...cfg.codigo], mutacao: null, testeAtual: null, suiteTestes: [],
     inicio: null, fim: null, vez: null, ferramentas: {},
+    evolucao: { defesa: false, ataque: false }, nivelDefesa: 1, nivelAtaque: 1, herdados: [],
   };
 }
 
@@ -154,9 +155,11 @@ function renderTeste(container, codigo, status = {}) {
 function renderSuite() {
   const el = $("#suite-codigo");
   let html = `<div class="suite-titulo">test_base.py · suíte inicial</div><div id="suite-base"></div>`;
+  st.herdados.forEach((t, i) => { html += `<div class="suite-titulo">🛡️ ${esc(t.nome)} · herdado de partida anterior</div><div id="herdado-${i}"></div>`; });
   st.suiteTestes.forEach((t, i) => { html += `<div class="suite-titulo">🏹 ${esc(t.nome)} · matou o mutante da rodada ${t.rodada}</div><div id="suite-${i}"></div>`; });
   el.innerHTML = html;
   renderTeste($("#suite-base"), cfg.testes_base);
+  st.herdados.forEach((t, i) => renderTeste($(`#herdado-${i}`), t.codigo));
   st.suiteTestes.forEach((t, i) => renderTeste($(`#suite-${i}`), t.codigo, Object.fromEntries(t.validos.map((v) => [v, "valido"]))));
 }
 
@@ -188,6 +191,10 @@ function renderPlacar() {
   }
   $("#pips").innerHTML = pips.join("");
   $("#suite-contagem").textContent = st.suite;
+  $("#nivel-num").textContent = st.evolucao.defesa ? st.nivelDefesa : "—";
+  $("#nivel").classList.toggle("desligado", !st.evolucao.defesa);
+  $("#nivel-ataque-num").textContent = st.evolucao.ataque ? st.nivelAtaque : "—";
+  $("#nivel-ataque").classList.toggle("desligado", !st.evolucao.ataque);
   $("#rotulo-rodada").textContent = st.rodada ? `RODADA ${st.rodada}/${st.total}` : "—";
 }
 
@@ -210,6 +217,18 @@ function pensando(papel, sim, texto) {
 function pontuar(papel) {
   const el = $(`#pontos-${papel}`);
   el.classList.remove("pula"); void el.offsetWidth; el.classList.add("pula");
+}
+
+function subirNivel(lado, novo) {
+  if (novo == null) return;
+  const chave = lado === "defesa" ? "nivelDefesa" : "nivelAtaque";
+  if (!st.evolucao[lado] || novo <= st[chave]) { st[chave] = Math.max(st[chave], novo || 1); return; }
+  st[chave] = novo;
+  const el = lado === "defesa" ? $("#nivel") : $("#nivel-ataque");
+  el.classList.remove("sobe"); void el.offsetWidth; el.classList.add("sobe");
+  registrar(lado === "defesa" ? "c" : "m", "⬆️", lado === "defesa"
+    ? `<b>Defesa sobe para o nível ${novo}</b>: o teste vencedor foi salvo e vale para as próximas partidas`
+    : `<b>Ataque sobe para o nível ${novo}</b>: brecha nova descoberta e guardada na memória do Mutante`);
 }
 
 function renderFerramentas() {
@@ -376,6 +395,30 @@ function tratar(ev) {
       registrar("s", "⏳", `Carregando modelo(s) na GPU: ${ev.modelos.map(esc).join(", ")}`);
       break;
 
+    case "progresso":
+      st.evolucao = ev.evolucao || { defesa: !!ev.persistir, ataque: false };
+      st.nivelDefesa = ev.nivel || 1; st.nivelAtaque = ev.nivel_ataque || 1; st.herdados = ev.herdados || [];
+      renderSuite(); renderPlacar();
+      registrar("a", "🛡️", st.evolucao.defesa
+        ? `Defesa evolui · <b>nível ${st.nivelDefesa}</b> · ${st.herdados.length} teste(s) herdado(s) de ${ev.partidas_anteriores} partida(s)`
+        : "Evolução da defesa desligada: a suíte começa só com test_base.py");
+      registrar("m", "⚔️", st.evolucao.ataque
+        ? `Ataque evolui · <b>nível ${st.nivelAtaque}</b> · o Mutante usa a memória de ataques anteriores`
+        : "Evolução do ataque desligada: o Mutante joga sem memória");
+      if (st.evolucao.defesa || st.evolucao.ataque)
+        toast(`⚔️ Ataque nível <b>${st.evolucao.ataque ? st.nivelAtaque : "—"}</b> · 🛡️ Defesa nível <b>${st.evolucao.defesa ? st.nivelDefesa : "—"}</b>`, "info", fresco);
+      break;
+
+    case "memoria":
+      if (ev.linhas && ev.linhas.length) {
+        cartao("mutante", { tipo: "memoria-c", nome: "📚 memória de ataques", selo: ["info", `ataque nível ${ev.nivel_ataque}`],
+          corpo: `<div class="memoria">${esc(ev.linhas.join("\n"))}</div>` });
+        registrar("m", "📚", `O Mutante consultou sua memória: ${ev.linhas.filter((l) => l.startsWith("  -")).length} ataque(s) lembrado(s)`);
+      } else {
+        cartao("mutante", { tipo: "memoria-c", nome: "📚 memória vazia", selo: ["info", "primeira vez"], corpo: "nenhum ataque anterior registrado ainda" });
+      }
+      break;
+
     case "mcp_conectado":
       if (st.modo !== "replay") status("AO VIVO", "aovivo");
       st.ferramentas = ev.por_papel;
@@ -393,7 +436,7 @@ function tratar(ev) {
       for (const q of PAPEIS) $(`#feed-${q}`).insertAdjacentHTML("beforeend", `<div class="cartao"><div class="cab"><span class="nome">— Rodada ${ev.rodada} —</span></div></div>`);
       renderCodigo(); renderPlacar(); mostrarAba("codigo");
       registrar("a", "🔔", `<b>Rodada ${ev.rodada}</b> · suíte com ${ev.testes_na_suite} arquivo(s) de teste`);
-      splash(`<span class="grande a">RODADA ${ev.rodada}</span><div class="menor">🧟 o Mutante ataca primeiro</div>`, fresco);
+      splash(`<span class="grande a">RODADA ${ev.rodada}</span><div class="menor">🧟 o Mutante ataca primeiro${st.evolucao.ataque || st.evolucao.defesa ? ` · ⚔️ ataque ${st.nivelAtaque} × 🛡️ defesa ${st.nivelDefesa}` : ""}</div>`, fresco);
       break;
 
     case "turno":
@@ -468,6 +511,7 @@ function tratar(ev) {
     case "rodada_fim": {
       const v = ev.vencedor;
       st.placar = ev.placar; st.vencedores[ev.rodada - 1] = v;
+      subirNivel("defesa", ev.nivel_defesa); subirNivel("ataque", ev.nivel_ataque);
       vez(null); renderPlacar(); if (v) pontuar(v);
       registrar(v === "mutante" ? "m" : "c", "🏁", `<b>${NOME[v] || "?"}</b> vence a rodada ${ev.rodada}: ${esc(ev.motivo || "")}`);
       if (v === "cacador") splash(`<span class="emoji">🏹</span><span class="grande c">MUTANTE ABATIDO!</span><div class="menor">${esc(ev.motivo || "")}</div>`, fresco);
@@ -599,12 +643,20 @@ function mostrarFinal(r, fresco) {
   $("#final-trofeu").textContent = venc ? ICONE[venc] + "🏆" : "🤝";
   $("#final-titulo").innerHTML = venc ? `<span class="${venc === "mutante" ? "c-m" : "c-c"}">${NOME[venc].toUpperCase()}</span> VENCE A PARTIDA` : "EMPATE";
   $("#final-pm").textContent = pm; $("#final-pc").textContent = pc;
+  const ga = (r.nivel_ataque_fim ?? 1) - (r.nivel_ataque_inicio ?? 1), gd = (r.nivel_fim ?? 1) - (r.nivel_inicio ?? 1);
+  const evo = $("#final-evolucao");
+  if (r.evolucao && (r.evolucao.ataque || r.evolucao.defesa)) {
+    evo.innerHTML = ga > gd ? `<span class="c-m">⚔️ O ATAQUE evoluiu mais nesta partida</span> (+${ga} × +${gd})`
+      : gd > ga ? `<span class="c-c">🛡️ A DEFESA evoluiu mais nesta partida</span> (+${gd} × +${ga})`
+      : `Evolução empatada nesta partida (+${ga} × +${gd})`;
+  } else evo.innerHTML = "";
   const min = Math.floor(r.duracao_s / 60), seg = Math.round(r.duracao_s % 60);
   $("#final-destaques").innerHTML = [
     [r.rodadas, "rodadas"],
     [`${min}m${String(seg).padStart(2, "0")}s`, "duração (100% local)"],
     [r.testes_alucinados_descartados, "testes alucinados barrados"],
-    [r.testes_na_suite_final ?? st.suite, "arquivos na suíte final"],
+    [r.evolucao?.ataque ? `${r.nivel_ataque_inicio} → ${r.nivel_ataque_fim}` : "—", "⚔️ nível do ataque"],
+    [r.evolucao?.defesa || r.persistir ? `${r.nivel_inicio} → ${r.nivel_fim}` : "—", "🛡️ nível da defesa"],
   ].map(([v, t]) => `<div class="destaque"><b>${esc(v)}</b><span>${t}</span></div>`).join("");
   const m = r.agentes.mutante, c = r.agentes.cacador;
   const linhas = [
@@ -630,6 +682,46 @@ function mostrarFinal(r, fresco) {
 function abrir(sel) { fecharModais(); $(sel).classList.add("aberto"); }
 function fecharModais() { $$(".modal").forEach((m) => m.classList.remove("aberto")); }
 
+function graficoNiveis(hist) {
+  // duas linhas: nível do ataque (magenta) e da defesa (ciano) ao fim de cada partida
+  const pts = [{ a: 1, d: 1 }, ...hist.map((h) => ({ a: h.nivel_ataque_fim ?? 1, d: h.nivel_fim ?? 1 }))];
+  const max = Math.max(2, ...pts.map((p) => Math.max(p.a, p.d)));
+  const W = 300, H = 70;
+  const px = (i) => 6 + i * ((W - 12) / Math.max(1, pts.length - 1));
+  const py = (v) => H - 6 - ((v - 1) / (max - 1)) * (H - 14);
+  const linha = (k, cor) => `<polyline fill="none" stroke="${cor}" stroke-width="2.5" stroke-linejoin="round" points="${pts.map((p, i) => `${px(i)},${py(p[k])}`).join(" ")}"/>` +
+    pts.map((p, i) => `<circle cx="${px(i)}" cy="${py(p[k])}" r="3" fill="${cor}"><title>${k === "a" ? "ataque" : "defesa"}: nível ${p[k]}</title></circle>`).join("");
+  return `<svg class="grafico-niveis" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${linha("d", "var(--c)")}${linha("a", "var(--m)")}</svg>`;
+}
+
+function renderProgresso(pr) {
+  const caixa = $("#progresso-caixa");
+  if (!pr) { caixa.innerHTML = ""; return; }
+  const hist = pr.historico || [];
+  const ga = (pr.nivel_ataque || 1) - 1, gd = (pr.nivel || 1) - 1;
+  const lider = !hist.length ? "" : ga > gd ? `<span class="c-m">⚔️ o ataque está evoluindo mais</span>`
+    : gd > ga ? `<span class="c-c">🛡️ a defesa está evoluindo mais</span>` : "empate na evolução";
+  const colunas = hist.map((h) => {
+    const tot = Math.max(1, h.rodadas || 1);
+    const pm = (h.placar?.mutante || 0) / tot * 100, pc = (h.placar?.cacador || 0) / tot * 100;
+    return `<div class="col" title="${esc(h.data)} · ⚔️ ${h.nivel_ataque_inicio ?? 1}→${h.nivel_ataque_fim ?? 1} · 🛡️ ${h.nivel_inicio}→${h.nivel_fim} · 🧟 ${h.placar?.mutante} × ${h.placar?.cacador} 🏹"><i class="gm" style="height:${pm}%"></i><i class="gc" style="height:${pc}%"></i></div>`;
+  }).join("");
+  caixa.innerHTML = `
+    <div class="topo-prog"><span><b class="c-m">⚔️ ataque nível ${pr.nivel_ataque || 1}</b> × <b class="c-c">🛡️ defesa nível ${pr.nivel}</b> · ${pr.partidas} partida(s)</span>
+      <button class="zerar" id="btn-zerar" ${pr.testes_herdados || pr.partidas || pr.licoes ? "" : "disabled"}>↺ zerar</button></div>
+    ${hist.length ? `<div class="quem-evoluiu">${lider}</div>
+      ${graficoNiveis(hist)}
+      <div class="legenda-prog"><span><i style="background:var(--m)"></i>nível do ataque</span><span><i style="background:var(--c)"></i>nível da defesa</span><span>(por partida)</span></div>
+      <div class="grafico-prog">${colunas}</div>
+      <div class="legenda-prog"><span><i style="background:var(--m)"></i>rodadas do Mutante</span><span><i style="background:var(--c)"></i>rodadas do Caçador</span></div>`
+      : `<div class="sutil pequeno" style="margin-top:6px">Nenhuma partida registrada ainda. A defesa sobe a cada mutante abatido; o ataque sobe a cada brecha descoberta.</div>`}`;
+  $("#btn-zerar")?.addEventListener("click", async () => {
+    if (!confirm("Apagar a suíte herdada, a memória do Mutante e o histórico? Os dois lados voltam ao nível 1.")) return;
+    const r = await fetch("/api/progresso/zerar", { method: "POST" }).then((x) => x.json()).catch(() => null);
+    if (r?.ok) { toast(`↺ Progresso zerado (${r.removidos} teste(s) removido(s))`, "info"); renderProgresso(r.progresso); }
+  });
+}
+
 async function carregarConfig() {
   const r = await fetch("/api/config").then((x) => x.json());
   Object.assign(cfg, r);
@@ -642,6 +734,7 @@ async function carregarConfig() {
       <b>${esc(g.nome)}</b>${g.origem === "exemplos" ? `<span class="tag">EXEMPLO</span>` : ""}
       <div class="det">🧟 ${g.placar?.mutante ?? "?"} × ${g.placar?.cacador ?? "?"} 🏹 · ${g.rodadas} rodada(s) · ${Math.round(g.duracao_s || 0)}s · ${esc(g.modelos?.mutante || "")}</div>
     </button>`).join("") || `<p class="sutil pequeno">Nenhuma gravação ainda. Rode uma partida ao vivo para gerar uma.</p>`;
+  renderProgresso(r.progresso);
   gravacaoSel = r.gravacoes[0]?.id || null;
   $("#btn-replay").disabled = !gravacaoSel;
   $$(".gravacao", lista).forEach((b) => b.addEventListener("click", () => {
@@ -676,6 +769,8 @@ function ligarControles() {
     tentativas: Number($("#inp-tentativas").value) || 3,
     modelo_mutante: $("#sel-mutante").value,
     modelo_cacador: $("#sel-cacador").value,
+    evoluir_ataque: $("#chk-evo-ataque").checked,
+    evoluir_defesa: $("#chk-evo-defesa").checked,
   }));
   $("#btn-replay").addEventListener("click", () => gravacaoSel && post("/api/replay", {
     id: gravacaoSel, velocidade: Number($("#sel-velocidade").value) || 2,

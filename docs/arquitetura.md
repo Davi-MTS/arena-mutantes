@@ -41,6 +41,7 @@ Este documento explica **como as peças se conectam**. Para rodar o projeto, vej
 | [`arena.py`](../arena.py) | Orquestra a partida e implementa os dois agentes: conversa com o LLM, extrai as chamadas de ferramenta e as executa via MCP | Ollama (streaming), cliente MCP |
 | [`servidor_arena.py`](../servidor_arena.py) | Servidor MCP: expõe as ferramentas, guarda o estado do jogo e impõe as regras | MCP Python SDK (`FastMCP`, stdio) |
 | [`arbitro.py`](../arbitro.py) | Decide cada jogada executando código, sem IA | `ast`, `subprocess`, `pytest` |
+| [`progresso.py`](../progresso.py) | Evolução entre partidas: testes herdados da defesa (`progresso/suite/`), memória de ataques do Mutante (`progresso/arsenal.json`), níveis e histórico | Python (arquivos JSON) |
 | [`painel.py`](../painel.py) | Servidor web do painel: partida ao vivo e replay | FastAPI, SSE |
 | [`painel/`](../painel/) | Interface visual | HTML, CSS e JavaScript puros (sem CDN) |
 | [`campo/descontos.py`](../campo/descontos.py) | Código em disputa: regras de preço de uma distribuidora. **As docstrings são a especificação** | Python |
@@ -70,6 +71,28 @@ Este documento explica **como as peças se conectam**. Para rodar o projeto, vej
 ```
 
 Cada lado tem no máximo `--tentativas` jogadas (3) e `--max-passos` chamadas ao LLM (12) por turno. Esgotou, perde a rodada.
+
+## Evolução entre partidas (ataque × defesa)
+
+```
+ 🛡️ DEFESA   suíte = test_base.py + progresso/suite/test_NNN.py (herdados)
+             Caçador mata um mutante  → teste válido salvo em progresso/suite/test_NNN.py
+             nível da defesa = 1 + testes herdados
+
+ ⚔️ ATAQUE   toda mutação tentada     → lição em progresso/arsenal.json (sobreviveu / abatido /
+                                         detectado pela suíte / equivalente / erro)
+             início de cada turno     → o Mutante recebe a memória agrupada por resultado
+             nível do ataque = 1 + mutações distintas que já sobreviveram
+
+ fim da partida → progresso/historico.json += {placar, ataque início→fim, defesa início→fim}
+```
+
+- **Mesma régua:** cada lado só sobe de nível quando vence uma rodada, para dar para comparar quem evolui mais.
+- O servidor MCP lê as variáveis `ARENA_EVOLUI_DEFESA`, `ARENA_EVOLUI_ATAQUE` (cada lado liga/desliga) e `ARENA_PARTIDA`, definidas por `arena.py`.
+- Onde cada coisa é gravada: o destino do mutante (sobreviveu ou abatido) em `_encerrar`; as rejeições em `propor_mutacao`; os testes vencedores em `enviar_teste`.
+- Duplicatas de teste são evitadas por uma assinatura SHA-256 do conteúdo, gravada no cabeçalho de cada arquivo.
+- Se a suíte passar de ~3.500 caracteres, `ler_testes` devolve só as asserções distintas (até 60), para caber no contexto de 6k tokens do modelo. A memória do Mutante mostra no máximo 6 ataques por grupo, pelo mesmo motivo.
+- **Os pesos do LLM continuam os mesmos:** evoluem a suíte (defesa) e a memória no prompt (ataque).
 
 ## Ferramentas MCP
 
@@ -113,6 +136,8 @@ Otimizações para modelos pequenos:
 | `ferramenta`, `resultado` | chamada MCP e resposta do servidor |
 | `mutante_vivo` | gabarito: linha original, nova linha, prova do oráculo |
 | `sem_ferramenta`, `bloqueio`, `limite` | erros de protocolo, ferramenta proibida, limite de autonomia |
+| `progresso` | níveis de ataque e defesa e testes herdados no início da partida |
+| `memoria` | memória de ataques entregue ao Mutante no início do turno |
 | `rodada_fim`, `partida_fim` | placar e resumo final |
 
 ## Logs gerados por partida (`logs/<data_hora>/`)

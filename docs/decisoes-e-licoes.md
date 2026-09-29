@@ -11,6 +11,8 @@
 | **Filtro de alucinação por função de teste** | Um `assert` com valor inventado é descartado sem invalidar os testes corretos do mesmo envio. |
 | **Edição por substituição (`trecho_original` → `trecho_novo`), ancorada pelo conteúdo** | Pedindo a linha inteira, o modelo errava indentação e estrutura (trocava um `if` por um `return`) e errava o número da linha por ±1. Com a interface no estilo `str_replace` dos agentes de código profissionais, ele só decide *o que* trocar. |
 | **Parser de reserva para tool calls** | O Qwen2.5-Coder 7B escreve a chamada como JSON no texto em vez de usar o formato nativo do Ollama. |
+| **Evolução por acúmulo, não por treino** | Com modelos locais de pesos fixos, a forma honesta e barata de evoluir é acumular conhecimento fora do modelo: a **defesa** herda testes vencedores e o **ataque** recebe uma memória de ataques no prompt. Treinar o modelo (fine-tuning) exigiria dias e mais GPU. |
+| **Mesma régua para ataque e defesa** | Cada lado só sobe de nível quando vence uma rodada. Se o ataque subisse a cada tentativa, "ganharia" a comparação artificialmente. |
 | **Streaming + eventos** | O painel mostra o modelo "pensando" token a token. Os mesmos eventos, gravados, alimentam o replay. |
 | **Modelos locais quantizados (Q4)** | Custo zero, privacidade (o código não sai da máquina) e funcionamento sem internet. Roda numa GTX 1660 Super de 6 GB. |
 | **SDK MCP fixado em `<2`** | A versão 2 do SDK renomeou APIs (`FastMCP` virou `MCPServer`). A 1.x é estável para a entrega. |
@@ -44,6 +46,8 @@ Cada problema abaixo apareceu em partidas reais e levou a uma mudança no códig
 
 ## Trabalhos futuros
 
+- **Memória também para o Caçador:** guardar os testes que se revelaram alucinações, para ele não repetir as mesmas expectativas erradas.
+- **Fine-tuning (LoRA)** com as jogadas vencedoras gravadas nos logs: aí sim o modelo aprenderia, como no AlphaGo.
 - **Arena completa:** torneio entre vários modelos com rating Elo.
 - Novos jogos: Fuzzer vs. Validador, Código trapaceiro vs. Revisor, Arena de *prompt injection*.
 - Sandbox em container sem rede ou WebAssembly.

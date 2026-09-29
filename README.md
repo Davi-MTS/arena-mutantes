@@ -19,6 +19,7 @@ Tudo roda **100% local**: modelos abertos via [Ollama](https://ollama.com), ferr
 - [Como rodar (3 passos)](#-como-rodar-3-passos)
 - [Como usar o painel](#-como-usar-o-painel)
 - [Como funciona](#-como-funciona-em-1-minuto)
+- [Evolução entre partidas: quem evolui mais?](#-evolução-entre-partidas-quem-evolui-mais)
 - [O que tem em cada pasta](#-o-que-tem-em-cada-pasta)
 - [Resultados](#-resultados)
 - [Documentação completa](#-documentação-completa)
@@ -56,6 +57,10 @@ python arena.py --rodadas 3
 | `--tentativas` | 3 | jogadas por turno antes de perder a rodada |
 | `--max-passos` | 12 | **limite de autonomia**: chamadas ao LLM por turno |
 | `--num-ctx` | 6144 | janela de contexto (ajuste à sua VRAM) |
+| `--sem-evolucao-ataque` | – | o Mutante joga sem memória de ataques |
+| `--sem-evolucao-defesa` | – | a suíte não herda nem salva testes |
+| `--sem-persistencia` | – | desliga a evolução dos dois lados |
+| `--zerar-progresso` | – | apaga a suíte herdada e o histórico e sai |
 
 ---
 
@@ -106,6 +111,34 @@ python arena.py --rodadas 3
 
 ---
 
+## 📈 Evolução entre partidas: quem evolui mais?
+
+Os pesos dos LLMs não mudam, mas **cada lado acumula conhecimento** de uma partida para a outra, de forma independente:
+
+| | ⚔️ Ataque (Mutante) | 🛡️ Defesa (Caçador) |
+|---|---|---|
+| **O que acumula** | Memória de ataques (`progresso/arsenal.json`): cada mutação tentada e o resultado | Testes vencedores (`progresso/suite/`) |
+| **Como usa** | Recebe a memória no início de cada turno: explora brechas que já funcionaram e evita o que a defesa já cobre | Os testes herdados entram na suíte que o Mutante precisa enganar |
+| **Nível** | 1 + brechas descobertas (mutações distintas que sobreviveram) | 1 + mutantes abatidos |
+| **Sobe quando** | o Mutante **vence** uma rodada com um ataque novo | o Caçador **vence** uma rodada |
+
+Os dois níveis usam **a mesma régua** (só vitórias contam), então dá para comparar quem evolui mais. No painel:
+- os dois níveis aparecem no placar e sobem (⬆️) ao vivo;
+- o Mutante mostra um cartão **📚 memória** com o que lembrou naquela rodada;
+- a tela inicial traz um **gráfico dos níveis por partida** e diz qual lado está evoluindo mais.
+
+**Opções:**
+- cada lado pode ser ligado ou desligado separadamente (caixas no painel, ou `--sem-evolucao-ataque` / `--sem-evolucao-defesa`). Isso permite experimentos como "e se só o Mutante evoluir?";
+- para voltar os dois ao nível 1: botão **↺ zerar** ou `python arena.py --zerar-progresso`.
+
+**Primeira partida com os dois lados evoluindo:** o Mutante achou uma brecha no frete grátis de GO e, guiado pela memória ("sobreviveu: explore de novo ou varie"), voltou à mesma linha com variações nas rodadas seguintes. O Caçador não detectou nenhuma. Resultado: **Mutante 3 × 0**, ataque nível 1 → 4, defesa 1 → 1.
+
+![Tela final: o ataque evoluiu mais nesta partida](docs/img/painel-evolucao-final.jpg)
+
+➡️ Detalhes em [progresso/README.md](progresso/README.md).
+
+---
+
 ## 📁 O que tem em cada pasta
 
 ```
@@ -117,6 +150,7 @@ arena-mutantes/
 ├── arena.py                  ← AGENTES + orquestrador (cliente MCP + Ollama); também roda no terminal
 ├── servidor_arena.py         ← SERVIDOR MCP: ferramentas do jogo e regras de turno
 ├── arbitro.py                ← ÁRBITRO: validação AST, sandbox pytest, oráculo, filtro de alucinação
+├── progresso.py              ← EVOLUÇÃO: testes herdados (defesa), memória de ataques (Mutante), níveis e histórico
 ├── painel.py                 ← servidor do PAINEL visual (FastAPI + SSE): ao vivo e replay
 ├── painel/                   ← interface web (HTML/CSS/JS puros, funciona offline)
 │
@@ -124,6 +158,7 @@ arena-mutantes/
 │   ├── descontos.py          ←   regras de preço de uma distribuidora (as docstrings são a especificação)
 │   └── test_base.py          ←   suíte inicial, propositalmente fraca
 │
+├── progresso/                ← o que evolui entre partidas (suite/, arsenal.json, historico.json)
 ├── exemplos/                 ← partidas reais gravadas (logs completos + replay no painel)
 ├── docs/                     ← documentação detalhada e imagens
 └── logs/                     ← criado a cada partida (fora do Git)

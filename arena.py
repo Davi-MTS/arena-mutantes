@@ -24,6 +24,7 @@ from types import SimpleNamespace
 from typing import Callable
 
 import ollama
+import progresso
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from rich.console import Console
@@ -180,7 +181,17 @@ async def turno(sessao: ClientSession, ferramentas: list[dict], papel: str, mode
     pelas regras do jogo, False se estourou o limite de passos."""
     permitidas = FERRAMENTAS_POR_PAPEL[papel]
     tools = [f for f in ferramentas if f["function"]["name"] in permitidas]
-    msgs = [{"role": "system", "content": PROMPTS[papel]}, {"role": "user", "content": TAREFA[papel]}]
+    tarefa = TAREFA[papel]
+    if papel == "mutante" and not args.sem_evolucao_ataque:
+        # Evolução do atacante: memória de ataques de rodadas e partidas anteriores.
+        memoria = progresso.memoria_mutante()
+        nivel_atq = progresso.nivel_ataque()
+        log.emitir("memoria", papel=papel, nivel_ataque=nivel_atq, linhas=memoria)
+        if memoria:
+            tarefa += ("\n\n📚 SUA MEMÓRIA DE ATAQUES ANTERIORES (use-a!):\n" + "\n".join(memoria) +
+                       "\n\nEstratégia: NÃO repita ataques detectados, abatidos ou equivalentes. "
+                       "Ataques que SOBREVIVERAM mostram brechas da defesa: repita-os ou faça variações na mesma região.")
+    msgs = [{"role": "system", "content": PROMPTS[papel]}, {"role": "user", "content": tarefa}]
     # teto de tokens por resposta: mantém a partida ágil (o Caçador precisa de mais: escreve código)
     opcoes = {"num_ctx": args.num_ctx, "temperature": 0.8 if papel == "mutante" else 0.3,
               "num_predict": 600 if papel == "mutante" else 1800}
@@ -286,6 +297,8 @@ async def partida(args, emitir: Callable[[dict], None] = _nada, parar: threading
     # O servidor MCP roda com ambiente mínimo: nenhum segredo do usuário é repassado.
     env = {k: v for k, v in os.environ.items() if k.upper() in ("PATH", "SYSTEMROOT", "TEMP", "TMP", "WINDIR")}
     env.update(ARENA_LOG_ARBITRO=str(pasta / "arbitro.jsonl"), ARENA_MAX_TENTATIVAS=str(args.tentativas),
+               ARENA_EVOLUI_DEFESA="0" if args.sem_evolucao_defesa else "1",
+               ARENA_EVOLUI_ATAQUE="0" if args.sem_evolucao_ataque else "1", ARENA_PARTIDA=pasta.name,
                PYTHONIOENCODING="utf-8")
     servidor = StdioServerParameters(command=sys.executable, args=[str(RAIZ / "servidor_arena.py")],
                                      env=env, cwd=str(RAIZ))
@@ -319,6 +332,18 @@ async def partida(args, emitir: Callable[[dict], None] = _nada, parar: threading
                 r = await sessao.call_tool(nome, {})
                 return json.loads(r.content[0].text)
 
+            inicial = await admin("admin_estado")
+            nivel_inicio = inicial["nivel_inicial"]
+            ataque_inicio = inicial.get("nivel_ataque", 1)
+            evolucao = {"defesa": inicial["evolui_defesa"], "ataque": inicial["evolui_ataque"]}
+            log.emitir("progresso", evolucao=evolucao, nivel=nivel_inicio, nivel_ataque=ataque_inicio,
+                       herdados=inicial["herdados"], partidas_anteriores=len(progresso.carregar_historico()))
+            nota_defesa = (f" ({len(inicial['herdados'])} teste(s) herdado(s))" if evolucao["defesa"]
+                           else " (evolução desligada)")
+            nota_ataque = "" if evolucao["ataque"] else " (evolução desligada)"
+            console.print(f"[bold yellow]🛡  Defesa nível {nivel_inicio}[/]{nota_defesa} · "
+                          f"[bold magenta]⚔  Ataque nível {ataque_inicio}[/]{nota_ataque}")
+
             try:
                 for rodada in range(1, args.rodadas + 1):
                     info = await admin("admin_nova_rodada")
@@ -344,7 +369,9 @@ async def partida(args, emitir: Callable[[dict], None] = _nada, parar: threading
                                   f"   [dim]placar {final['placar']}[/]")
                     log("fim_rodada", **final)
                     log.emitir("rodada_fim", rodada=rodada, vencedor=res.get("vencedor"),
-                               motivo=res.get("motivo"), placar=final["placar"], mutacao=final["mutacao"])
+                               motivo=res.get("motivo"), placar=final["placar"], mutacao=final["mutacao"],
+                               nivel_defesa=final["nivel_defesa"],
+                               nivel_ataque=progresso.nivel_ataque() if evolucao["ataque"] else 1)
             except Parada:
                 log.emitir("interrompida")
                 console.print("[yellow]Partida interrompida.[/]")
@@ -352,6 +379,22 @@ async def partida(args, emitir: Callable[[dict], None] = _nada, parar: threading
             final = await admin("admin_estado")
 
     resumo = gerar_resumo(log.eventos, pasta, final, modelos, time.time() - inicio_partida)
+    resumo["evolucao"] = {"defesa": final.get("evolui_defesa", False), "ataque": final.get("evolui_ataque", False)}
+    resumo["persistir"] = resumo["evolucao"]["defesa"] or resumo["evolucao"]["ataque"]
+    resumo["nivel_inicio"] = final.get("nivel_inicial", 1)
+    resumo["nivel_fim"] = final.get("nivel_defesa", resumo["nivel_inicio"])
+    resumo["testes_persistidos"] = final.get("persistidos", [])
+    resumo["nivel_ataque_inicio"] = inicial.get("nivel_ataque", 1)
+    resumo["nivel_ataque_fim"] = progresso.nivel_ataque() if resumo["evolucao"]["ataque"] else 1
+    (pasta / "resumo.json").write_text(json.dumps(resumo, ensure_ascii=False, indent=2), encoding="utf-8")
+    if resumo["persistir"] and resumo["rodadas"]:
+        progresso.registrar_partida(partida=pasta.name, modelos=modelos, placar=resumo["placar"],
+                                    rodadas=resumo["rodadas"], nivel_inicio=resumo["nivel_inicio"],
+                                    nivel_fim=resumo["nivel_fim"],
+                                    nivel_ataque_inicio=resumo["nivel_ataque_inicio"],
+                                    nivel_ataque_fim=resumo["nivel_ataque_fim"], evolucao=resumo["evolucao"])
+        console.print(f"[bold yellow]🛡  Defesa: nível {resumo['nivel_inicio']} → {resumo['nivel_fim']}[/]   "
+                      f"[bold magenta]⚔  Ataque: nível {resumo['nivel_ataque_inicio']} → {resumo['nivel_ataque_fim']}[/]")
     log.emitir("partida_fim", resumo=resumo)
     mostrar_resumo(resumo)
     console.print(f"\n[dim]Logs: {pasta}[/]")
@@ -390,7 +433,7 @@ def gerar_resumo(eventos: list[dict], pasta: Path, final: dict, modelos: dict, d
         "ferramentas_bloqueadas": sum(e["evento"] == "ferramenta_bloqueada" for e in eventos),
         "limites_de_passos": sum(e["evento"] == "limite_de_passos" for e in eventos),
         "mutacoes_aceitas": [e["descricao"] for e in arbitro if e["evento"] == "mutacao_aceita"],
-        "testes_na_suite_final": 1 + len(final.get("testes_aceitos", [])),
+        "testes_na_suite_final": 1 + len(final.get("herdados", [])) + len(final.get("testes_aceitos", [])),
     }
     (pasta / "resumo.json").write_text(json.dumps(resumo, ensure_ascii=False, indent=2), encoding="utf-8")
     return resumo
@@ -426,11 +469,25 @@ def criar_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-passos", type=int, default=12, help="limite de autonomia por turno")
     p.add_argument("--tentativas", type=int, default=3, help="tentativas de jogada por turno")
     p.add_argument("--num-ctx", type=int, default=6144)
+    p.add_argument("--sem-evolucao-defesa", action="store_true",
+                   help="a defesa não herda nem salva testes entre partidas")
+    p.add_argument("--sem-evolucao-ataque", action="store_true",
+                   help="o Mutante não usa nem grava memória de ataques")
+    p.add_argument("--sem-persistencia", action="store_true",
+                   help="desliga a evolução dos dois lados (cada partida começa do zero)")
+    p.add_argument("--zerar-progresso", action="store_true",
+                   help="apaga a suíte herdada e o histórico (progresso/) e sai")
     return p
 
 
 def main():
-    asyncio.run(partida(criar_parser().parse_args()))
+    args = criar_parser().parse_args()
+    if args.sem_persistencia:
+        args.sem_evolucao_defesa = args.sem_evolucao_ataque = True
+    if args.zerar_progresso:
+        console.print(f"Progresso zerado: {progresso.zerar()} teste(s) herdado(s) removido(s).")
+        return
+    asyncio.run(partida(args))
 
 
 if __name__ == "__main__":

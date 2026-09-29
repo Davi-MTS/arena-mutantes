@@ -1,0 +1,23 @@
+[
+  {
+    "data": "2026-09-29 12:00",
+    "partida": "20260929_115408",
+    "modelos": {
+      "mutante": "qwen2.5-coder:7b",
+      "cacador": "qwen2.5-coder:7b"
+    },
+    "placar": {
+      "mutante": 3,
+      "cacador": 0
+    },
+    "rodadas": 3,
+    "nivel_inicio": 1,
+    "nivel_fim": 1,
+    "nivel_ataque_inicio": 1,
+    "nivel_ataque_fim": 4,
+    "evolucao": {
+      "defesa": true,
+      "ataque": true
+    }
+  }
+]

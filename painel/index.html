@@ -54,7 +54,11 @@
   <div class="centro-placar">
     <div class="vs">VS</div>
     <div class="pips" id="pips"></div>
-    <div class="suite" title="Testes na suíte: cresce a cada mutante abatido">🛡️ Suíte: <b id="suite-contagem">1</b> arquivo(s) de teste</div>
+    <div class="niveis">
+      <span class="nivel ataque" id="nivel-ataque" title="Nível do ataque = 1 + brechas descobertas (mutações distintas que já sobreviveram)">⚔️ ATAQUE <b id="nivel-ataque-num">1</b></span>
+      <span class="nivel" id="nivel" title="Nível da defesa = 1 + mutantes abatidos (testes herdados)">🛡️ DEFESA <b id="nivel-num">1</b></span>
+    </div>
+    <div class="suite" title="Arquivos de teste na suíte agora (base + herdados + desta partida)">Suíte: <b id="suite-contagem">1</b> arquivo(s) de teste</div>
   </div>
 
   <article class="lutador cacador" id="lutador-cacador">
@@ -179,6 +183,11 @@
           <label>Rodadas <input id="inp-rodadas" type="number" min="1" max="10" value="2"></label>
           <label>Tentativas/turno <input id="inp-tentativas" type="number" min="1" max="5" value="3"></label>
         </div>
+        <div class="evolucao-opcoes">
+          <label class="check"><input type="checkbox" id="chk-evo-ataque" checked> <span>⚔️ <b>Ataque evolui</b>: o Mutante usa a memória de ataques anteriores</span></label>
+          <label class="check"><input type="checkbox" id="chk-evo-defesa" checked> <span>🛡️ <b>Defesa evolui</b>: a suíte herda os testes vencedores</span></label>
+        </div>
+        <div class="progresso-caixa" id="progresso-caixa"></div>
         <button class="btn primario grande" id="btn-iniciar">▶ Iniciar partida</button>
         <p class="sutil pequeno">≈ 1 a 3 min por rodada numa GPU de 6 GB.</p>
       </div>
@@ -207,6 +216,7 @@
     <div class="trofeu" id="final-trofeu">🏆</div>
     <h2 id="final-titulo">Fim de partida</h2>
     <div class="final-placar"><span class="c-m" id="final-pm">0</span><small>×</small><span class="c-c" id="final-pc">0</span></div>
+    <div class="quem-evoluiu" id="final-evolucao"></div>
     <div class="final-destaques" id="final-destaques"></div>
     <table class="tabela-final" id="final-tabela"></table>
     <div class="final-listas" id="final-listas"></div>
@@ -247,6 +257,10 @@
       <li><b class="c-c">Caçador</b> lê o código com bug (sem saber a linha) e escreve testes a partir das docstrings (a especificação).</li>
       <li>Testes que falham no código <b>correto</b> são <b>alucinações</b> e vão para o lixo. Os válidos precisam falhar no mutante para abatê-lo.</li>
       <li>Testes vencedores entram na suíte, e o próximo Mutante enfrenta uma defesa mais forte.</li>
+      <li><b>Evolução entre partidas (quem evolui mais?):</b>
+        🛡️ a <b>defesa</b> herda os testes vencedores (<code>progresso/suite/</code>) e sobe um nível a cada mutante abatido;
+        ⚔️ o <b>ataque</b> guarda uma memória de ataques (<code>progresso/arsenal.json</code>), que o Mutante recebe a cada turno, e sobe um nível a cada brecha descoberta (mutação que sobreviveu).
+        Os pesos dos modelos não mudam; evoluem a suíte e a memória. Cada lado pode ser ligado ou desligado separadamente.</li>
     </ol>
     <div class="seguranca">
       <h3>🔒 Segurança</h3>

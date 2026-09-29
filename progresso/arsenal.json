@@ -1,0 +1,29 @@
+[
+  {
+    "partida": "20260929_115408",
+    "rodada": 1,
+    "linha": 37,
+    "trecho_original": "return 0.0",
+    "trecho_novo": "return 10.0",
+    "resultado": "sobreviveu",
+    "detalhe": "Caçador esgotou as tentativas (última: nao_detectou)"
+  },
+  {
+    "partida": "20260929_115408",
+    "rodada": 2,
+    "linha": 37,
+    "trecho_original": "return 0.0",
+    "trecho_novo": "return -10.0",
+    "resultado": "sobreviveu",
+    "detalhe": "Caçador esgotou as tentativas (última: expectativa_errada)"
+  },
+  {
+    "partida": "20260929_115408",
+    "rodada": 3,
+    "linha": 37,
+    "trecho_original": "return 0.0",
+    "trecho_novo": "return 0.1",
+    "resultado": "sobreviveu",
+    "detalhe": "Caçador esgotou as tentativas (última: nao_detectou)"
+  }
+]

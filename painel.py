@@ -26,6 +26,7 @@ from pydantic import BaseModel
 
 import arbitro
 import arena
+import progresso
 
 RAIZ = Path(__file__).parent
 WEB = RAIZ / "painel"
@@ -96,6 +97,7 @@ def config():
         "testes_base": (RAIZ / "campo" / "test_base.py").read_text(encoding="utf-8"),
         "modelos": modelos,
         "gravacoes": listar_gravacoes(),
+        "progresso": progresso.situacao(),
         "ativa": tx.ativa,
     }
 
@@ -128,6 +130,8 @@ class PedidoPartida(BaseModel):
     modelo_cacador: str = "qwen2.5-coder:7b"
     tentativas: int = 3
     max_passos: int = 12
+    evoluir_defesa: bool = True  # a defesa herda os testes vencedores de partidas anteriores
+    evoluir_ataque: bool = True  # o Mutante usa a memória de ataques de partidas anteriores
 
 
 class PedidoReplay(BaseModel):
@@ -147,6 +151,8 @@ def iniciar_partida(p: PedidoPartida):
     args.rodadas = max(1, min(p.rodadas, 10))
     args.modelo_mutante, args.modelo_cacador = p.modelo_mutante, p.modelo_cacador
     args.tentativas, args.max_passos = p.tentativas, p.max_passos
+    args.sem_evolucao_defesa = not p.evoluir_defesa
+    args.sem_evolucao_ataque = not p.evoluir_ataque
     tx.nova_sessao("ao_vivo", modelos={"mutante": p.modelo_mutante, "cacador": p.modelo_cacador})
     parar = tx.parar
 
@@ -190,6 +196,12 @@ def iniciar_replay(p: PedidoReplay):
     tx.thread = threading.Thread(target=rodar, daemon=True)
     tx.thread.start()
     return {"ok": True, "sessao": tx.sessao}
+
+
+@app.post("/api/progresso/zerar")
+def zerar_progresso():
+    _ocupado()
+    return {"ok": True, "removidos": progresso.zerar(), "progresso": progresso.situacao()}
 
 
 @app.post("/api/parar")
