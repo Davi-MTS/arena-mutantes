@@ -1,0 +1,40 @@
+{
+  "placar": {
+    "mutante": 1,
+    "cacador": 2
+  },
+  "rodadas": 3,
+  "duracao_s": 252.0,
+  "agentes": {
+    "mutante": {
+      "modelo": "qwen2.5-coder:7b",
+      "chamadas_llm": 8,
+      "tokens_gerados": 521,
+      "tokens_por_s_medio": 24.3,
+      "chamadas_nativas": 0,
+      "chamadas_via_texto_json": 8,
+      "respostas_sem_ferramenta": 0
+    },
+    "cacador": {
+      "modelo": "qwen2.5-coder:7b",
+      "chamadas_llm": 10,
+      "tokens_gerados": 3460,
+      "tokens_por_s_medio": 23.8,
+      "chamadas_nativas": 0,
+      "chamadas_via_texto_json": 10,
+      "respostas_sem_ferramenta": 0
+    }
+  },
+  "rejeicoes_do_arbitro": {
+    "mutacao_rejeitada:erro_sintaxe": 3,
+    "teste_rejeitado:nao_detectou": 3
+  },
+  "testes_alucinados_descartados": 26,
+  "testes_enviados_total": 60,
+  "ferramentas_bloqueadas": 0,
+  "limites_de_passos": 0,
+  "mutacoes_aceitas": [
+    "linha 42: 'return 40.0' -> 'desconto = 0.10 * preco * (1 - desconto)'",
+    "linha 18: 'return 0.05' -> 'return 0.1'"
+  ]
+}

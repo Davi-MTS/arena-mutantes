@@ -1,0 +1,4 @@
+mcp>=1.20,<2
+ollama>=0.6
+pytest>=8
+rich>=13
