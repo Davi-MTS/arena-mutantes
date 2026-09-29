@@ -199,6 +199,7 @@ Placar: **Caçador 2 × 1 Mutante** · 8 testes alucinados barrados · 0 tool ca
 | [docs/seguranca.md](docs/seguranca.md) | Prompt injection, sandbox, credenciais, limites de autonomia, detecção de alucinações |
 | [docs/decisoes-e-licoes.md](docs/decisoes-e-licoes.md) | Decisões de projeto, evolução durante o desenvolvimento, lições sobre modelos locais, trabalhos futuros |
 | [docs/roteiro-apresentacao.md](docs/roteiro-apresentacao.md) | Roteiro da apresentação de 15 minutos, com plano B |
+| [docs/proximo-passo-laboratorio.md](docs/proximo-passo-laboratorio.md) | 🚧 **Próximo passo (não implementado):** Laboratório de estratégias de caça, com campo maior, mutantes em 4 níveis (até reescrever funções inteiras), 5 estratégias de teste e a matriz "qual estratégia encontra mais bugs" |
 
 ---
 
