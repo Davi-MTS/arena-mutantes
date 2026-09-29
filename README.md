@@ -142,7 +142,15 @@ Métricas de partidas reais na GTX 1660 Super (6 GB) com o Qwen2.5-Coder 7B quan
 | Tool calls no formato nativo do Ollama | **0%**: o modelo sempre escreve o JSON no texto (daí o parser de reserva) |
 | Testes do Caçador com valor esperado inventado | frequentemente **mais da metade**, todos barrados pelo árbitro |
 
-A partida completa gravada está em [`exemplos/`](exemplos/) e pode ser assistida no painel pelo **Replay**.
+**Partida de exemplo** (3 rodadas, 147 s), gravada em [`exemplos/partida_exemplo/`](exemplos/) e disponível no **Replay** do painel:
+
+| Rodada | O que aconteceu | Vencedor |
+|---|---|---|
+| 1 | Bug de 1 centavo no frete do DF (`25.0` → `24.99`); todos os testes do Caçador em 2 das 3 tentativas eram alucinados | 🧟 Mutante |
+| 2 | Os bugs tentados pelo Mutante já eram detectados pela suíte | 🏹 Caçador |
+| 3 | O Mutante repetiu três vezes o mesmo erro (trecho ambíguo) sem aproveitar o feedback | 🏹 Caçador |
+
+Placar: **Caçador 2 × 1 Mutante** · 8 testes alucinados barrados · 0 tool calls nativas. Detalhes em [exemplos/README.md](exemplos/README.md).
 
 **Principal lição:** o desenho da ferramenta importou tanto quanto o modelo. Trocar "reescreva a linha" por "troque o trecho X por Y" fez o Mutante passar de quase nunca conseguir jogar para acertar de primeira. Veja [docs/decisoes-e-licoes.md](docs/decisoes-e-licoes.md).
 

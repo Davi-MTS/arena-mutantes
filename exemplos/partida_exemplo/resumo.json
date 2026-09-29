@@ -1,0 +1,44 @@
+{
+  "placar": {
+    "mutante": 1,
+    "cacador": 2
+  },
+  "rodadas": 3,
+  "duracao_s": 147.5,
+  "agentes": {
+    "mutante": {
+      "modelo": "qwen2.5-coder:7b",
+      "chamadas_llm": 11,
+      "tokens_gerados": 604,
+      "tokens_por_s_medio": 22.1,
+      "segundos_pensando": 75.5,
+      "chamadas_nativas": 0,
+      "chamadas_via_texto_json": 11,
+      "respostas_sem_ferramenta": 0
+    },
+    "cacador": {
+      "modelo": "qwen2.5-coder:7b",
+      "chamadas_llm": 6,
+      "tokens_gerados": 704,
+      "tokens_por_s_medio": 22.1,
+      "segundos_pensando": 51.1,
+      "chamadas_nativas": 0,
+      "chamadas_via_texto_json": 6,
+      "respostas_sem_ferramenta": 0
+    }
+  },
+  "rejeicoes_do_arbitro": {
+    "teste_rejeitado:nao_detectou": 1,
+    "teste_rejeitado:expectativa_errada": 2,
+    "mutacao_rejeitada:morto_pela_suite": 2,
+    "mutacao_rejeitada:trecho_ambiguo": 4
+  },
+  "testes_alucinados_descartados": 8,
+  "testes_enviados_total": 8,
+  "ferramentas_bloqueadas": 0,
+  "limites_de_passos": 0,
+  "mutacoes_aceitas": [
+    "linha 41: 'return 25.0' -> 'return 24.99'"
+  ],
+  "testes_na_suite_final": 1
+}

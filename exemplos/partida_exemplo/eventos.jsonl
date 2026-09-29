@@ -1,0 +1,745 @@
+{"ts": 1790691677.9916174, "tipo": "partida_inicio", "modelos": {"mutante": "qwen2.5-coder:7b", "cacador": "qwen2.5-coder:7b"}, "rodadas": 3, "tentativas": 3, "max_passos": 12, "pasta": "20260929_112117"}
+{"ts": 1790691677.9916174, "tipo": "carregando", "modelos": ["qwen2.5-coder:7b"]}
+{"ts": 1790691689.8775651, "tipo": "mcp_conectado", "ferramentas": ["ler_codigo", "ler_testes", "propor_mutacao", "enviar_teste", "admin_nova_rodada", "admin_abrir_turno_cacador", "admin_encerrar_por_limite", "admin_estado"], "por_papel": {"mutante": ["ler_codigo", "ler_testes", "propor_mutacao"], "cacador": ["ler_codigo", "ler_testes", "enviar_teste"]}}
+{"ts": 1790691689.8991475, "tipo": "rodada_inicio", "rodada": 1, "total": 3, "testes_na_suite": 1}
+{"ts": 1790691689.8991475, "tipo": "turno", "rodada": 1, "papel": "mutante", "modelo": "qwen2.5-coder:7b"}
+{"ts": 1790691689.8991475, "tipo": "pensando", "papel": "mutante", "passo": 1}
+{"ts": 1790691706.2472103, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691706.3754475, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691706.4677308, "tipo": "llm_delta", "papel": "mutante", "texto": " \"ler"}
+{"ts": 1790691706.5557055, "tipo": "llm_delta", "papel": "mutante", "texto": "_codigo\","}
+{"ts": 1790691706.6429842, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691706.7314355, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {"}
+{"ts": 1790691706.818562, "tipo": "llm_delta", "papel": "mutante", "texto": "}}"}
+{"ts": 1790691706.8283105, "tipo": "llm_fim", "papel": "mutante", "passo": 1, "tokens": 13, "tok_s": 22.7, "segundos": 16.9, "origem": "texto_json", "tokens_prompt": 769}
+{"ts": 1790691706.8288438, "tipo": "ferramenta", "papel": "mutante", "nome": "ler_codigo", "argumentos": {}}
+{"ts": 1790691706.838559, "tipo": "resultado", "papel": "mutante", "nome": "ler_codigo", "repetida": false, "dados": null, "texto": "  1| \"\"\"Regras de preço de uma distribuidora (campo de jogo da Arena).\"\"\"\n  2| \n  3| \n  4| def subtotal(itens):\n  5|     \"\"\"Soma preco * quantidade de cada item. Lista vazia -> 0.0.\"\"\"\n  6|     total = 0.0\n  7|     for item in itens:\n  8|         total += item[\"preco\"] * item[\"quantidade\"]\n  9|     return round(total, 2)\n 10| \n 11| \n 12| def desconto_volume(quantidade_total):\n 13|     \"\"\"Percentual de desconto por volume:\n 14|     >= 100 unidades -> 10%; >= 50 unidades -> 5%; abaixo de 50 -> 0%.\"\"\"\n 15|     if quantidade_total >= 100:\n 16|         return 0.10\n 17|     if quantidade_total >= 50:\n 18|         return 0.05\n 19|     return 0.0\n 20| \n 21| \n 22| def aplicar_cupom(valor, cupom):\n 23|     \"\"\"Cupons: 'PRIMEIRA10' tira 10% do valor; 'MENOS20' tira R$ 20,00 fixos\n 24|     somente se o valor for maior ou igual a R$ 100,00. Cupom desconhecido ou\n 25|     None nao altera o valor. O resultado nunca e negativo.\"\"\"\n 26|     if cupom == \"PRIMEIRA10\":\n 27|         valor = valor * 0.90\n 28|     elif cupom == \"MENOS20\" and valor >= 100:\n 29|         valor = valor - 20\n 30|     return round(max(valor, 0.0), 2)\n 31| \n 32| \n 33| def frete(subtotal_pedido, uf):\n 34|     \"\"\"Frete: gratis para GO com subtotal >= R$ 300,00. Senao: GO paga R$ 15,00,\n 35|     DF paga R$ 25,00 e qualquer outra UF paga R$ 40,00.\"\"\"\n 36|     if uf == \"GO\" and subtotal_pedido >= 300:\n 37|         return 0.0\n 38|     if uf == \"GO\":\n 39|         return 15.0\n 40|     if uf == \"DF\":\n 41|         return 25.0\n 42|     return 40.0\n 43| \n 44| \n 45| def total_pedido(itens, uf, cupom=None):\n 46|     \"\"\"Total = subtotal com desconto de volume, depois cupom, depois soma o frete.\n 47|     O frete e calculado sobre o subtotal ORIGINAL (antes dos descontos).\"\"\"\n 48|     base = subtotal(itens)\n 49|     quantidade = sum(item[\"quantidade\"] for item in itens)\n 50|     com_volume = base * (1 - desconto_volume(quantidade))\n 51|     com_cupom = aplicar_cupom(com_volume, cupom)\n 52|     return round(com_cupom + frete(base, uf), 2)\n\nLinhas que você pode alterar: [6, 7, 8, 9, 15, 16, 17, 18, 19, 26, 27, 28, 29, 30, 36, 37, 38, 39, 40, 41, 42, 48, 49, 50, 51, 52]"}
+{"ts": 1790691706.838559, "tipo": "pensando", "papel": "mutante", "passo": 2}
+{"ts": 1790691714.2254603, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691714.3248527, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691714.4171379, "tipo": "llm_delta", "papel": "mutante", "texto": " \"ler"}
+{"ts": 1790691714.508986, "tipo": "llm_delta", "papel": "mutante", "texto": "_testes"}
+{"ts": 1790691714.6002076, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691714.6925569, "tipo": "llm_delta", "papel": "mutante", "texto": "arguments\":"}
+{"ts": 1790691714.7832901, "tipo": "llm_delta", "papel": "mutante", "texto": " {}}"}
+{"ts": 1790691714.8311605, "tipo": "llm_fim", "papel": "mutante", "passo": 2, "tokens": 14, "tok_s": 23.2, "segundos": 8.0, "origem": "texto_json", "tokens_prompt": 1715}
+{"ts": 1790691714.8311605, "tipo": "ferramenta", "papel": "mutante", "nome": "ler_testes", "argumentos": {}}
+{"ts": 1790691714.835, "tipo": "resultado", "papel": "mutante", "nome": "ler_testes", "repetida": false, "dados": null, "texto": "# ===== test_base.py =====\n\"\"\"Suíte inicial propositalmente fraca: o Mutante começa com vantagem.\"\"\"\nfrom descontos import subtotal, total_pedido\n\n\ndef test_subtotal_simples():\n    assert subtotal([{\"preco\": 10.0, \"quantidade\": 3}]) == 30.0\n\n\ndef test_total_pedido_go_sem_cupom():\n    itens = [{\"preco\": 5.0, \"quantidade\": 10}]\n    assert total_pedido(itens, \"GO\") == 65.0\n"}
+{"ts": 1790691714.835, "tipo": "pensando", "papel": "mutante", "passo": 3}
+{"ts": 1790691716.2106228, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691716.310598, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691716.4052768, "tipo": "llm_delta", "papel": "mutante", "texto": " \"pro"}
+{"ts": 1790691716.4988499, "tipo": "llm_delta", "papel": "mutante", "texto": "por_mut"}
+{"ts": 1790691716.5904996, "tipo": "llm_delta", "papel": "mutante", "texto": "acao\","}
+{"ts": 1790691716.6839943, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691716.7759907, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {\""}
+{"ts": 1790691716.866251, "tipo": "llm_delta", "papel": "mutante", "texto": "numero_lin"}
+{"ts": 1790691716.9590921, "tipo": "llm_delta", "papel": "mutante", "texto": "ha\":"}
+{"ts": 1790691717.0505283, "tipo": "llm_delta", "papel": "mutante", "texto": " 4"}
+{"ts": 1790691717.1470697, "tipo": "llm_delta", "papel": "mutante", "texto": "1,"}
+{"ts": 1790691717.2394269, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691717.332584, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_original"}
+{"ts": 1790691717.425397, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691717.5170007, "tipo": "llm_delta", "papel": "mutante", "texto": "return "}
+{"ts": 1790691717.6099894, "tipo": "llm_delta", "papel": "mutante", "texto": "25"}
+{"ts": 1790691717.7016835, "tipo": "llm_delta", "papel": "mutante", "texto": ".0"}
+{"ts": 1790691717.7939312, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691717.8851702, "tipo": "llm_delta", "papel": "mutante", "texto": "trecho"}
+{"ts": 1790691717.97759, "tipo": "llm_delta", "papel": "mutante", "texto": "_novo"}
+{"ts": 1790691718.0711875, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691718.167684, "tipo": "llm_delta", "papel": "mutante", "texto": "return "}
+{"ts": 1790691718.2592945, "tipo": "llm_delta", "papel": "mutante", "texto": "24"}
+{"ts": 1790691718.352521, "tipo": "llm_delta", "papel": "mutante", "texto": ".9"}
+{"ts": 1790691718.4449844, "tipo": "llm_delta", "papel": "mutante", "texto": "9\","}
+{"ts": 1790691718.5362437, "tipo": "llm_delta", "papel": "mutante", "texto": " \"just"}
+{"ts": 1790691718.6304262, "tipo": "llm_delta", "papel": "mutante", "texto": "ificativa"}
+{"ts": 1790691718.7309675, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691718.830703, "tipo": "llm_delta", "papel": "mutante", "texto": "Ajust"}
+{"ts": 1790691718.9226532, "tipo": "llm_delta", "papel": "mutante", "texto": "a o"}
+{"ts": 1790691719.0152645, "tipo": "llm_delta", "papel": "mutante", "texto": " preço do"}
+{"ts": 1790691719.1066027, "tipo": "llm_delta", "papel": "mutante", "texto": " frete"}
+{"ts": 1790691719.2044926, "tipo": "llm_delta", "papel": "mutante", "texto": " para DF"}
+{"ts": 1790691719.2966692, "tipo": "llm_delta", "papel": "mutante", "texto": " de "}
+{"ts": 1790691719.3890824, "tipo": "llm_delta", "papel": "mutante", "texto": "25"}
+{"ts": 1790691719.4797225, "tipo": "llm_delta", "papel": "mutante", "texto": ".0"}
+{"ts": 1790691719.5711136, "tipo": "llm_delta", "papel": "mutante", "texto": " para "}
+{"ts": 1790691719.6618357, "tipo": "llm_delta", "papel": "mutante", "texto": "24"}
+{"ts": 1790691719.7530973, "tipo": "llm_delta", "papel": "mutante", "texto": ".9"}
+{"ts": 1790691719.8471184, "tipo": "llm_delta", "papel": "mutante", "texto": "9,"}
+{"ts": 1790691719.9417422, "tipo": "llm_delta", "papel": "mutante", "texto": " evit"}
+{"ts": 1790691720.0355186, "tipo": "llm_delta", "papel": "mutante", "texto": "ando que"}
+{"ts": 1790691720.1301966, "tipo": "llm_delta", "papel": "mutante", "texto": " o fre"}
+{"ts": 1790691720.2242851, "tipo": "llm_delta", "papel": "mutante", "texto": "te seja"}
+{"ts": 1790691720.3201249, "tipo": "llm_delta", "papel": "mutante", "texto": " sempre gratuito"}
+{"ts": 1790691720.4142375, "tipo": "llm_delta", "papel": "mutante", "texto": " para GO"}
+{"ts": 1790691720.5081728, "tipo": "llm_delta", "papel": "mutante", "texto": ".\"}}"}
+{"ts": 1790691720.5546932, "tipo": "llm_fim", "papel": "mutante", "passo": 3, "tokens": 94, "tok_s": 21.6, "segundos": 5.7, "origem": "texto_json", "tokens_prompt": 1866}
+{"ts": 1790691720.5567458, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 41, "trecho_original": "return 25.0", "trecho_novo": "return 24.99", "justificativa": "Ajusta o preço do frete para DF de 25.0 para 24.99, evitando que o frete seja sempre gratuito para GO."}}
+{"ts": 1790691721.8619814, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": true, "detalhe": "mutante sobreviveu à suíte atual e está vivo", "turno_encerrado": true}, "texto": null}
+{"ts": 1790691721.8762064, "tipo": "mutante_vivo", "linha": 41, "descricao": "linha 41: 'return 25.0' -> 'return 24.99'", "evidencia": "frete(0.0, 'DF'): original=('ok', 25.0) mutante=('ok', 24.99)", "antiga": "        return 25.0", "nova": "        return 24.99"}
+{"ts": 1790691721.8884366, "tipo": "turno", "rodada": 1, "papel": "cacador", "modelo": "qwen2.5-coder:7b"}
+{"ts": 1790691721.888649, "tipo": "pensando", "papel": "cacador", "passo": 1}
+{"ts": 1790691727.6869936, "tipo": "llm_delta", "papel": "cacador", "texto": "{\""}
+{"ts": 1790691727.7843966, "tipo": "llm_delta", "papel": "cacador", "texto": "name\":"}
+{"ts": 1790691727.8725088, "tipo": "llm_delta", "papel": "cacador", "texto": " \"ler"}
+{"ts": 1790691727.9616218, "tipo": "llm_delta", "papel": "cacador", "texto": "_codigo\","}
+{"ts": 1790691728.0491438, "tipo": "llm_delta", "papel": "cacador", "texto": " \"arguments"}
+{"ts": 1790691728.137547, "tipo": "llm_delta", "papel": "cacador", "texto": "\": {"}
+{"ts": 1790691728.2275991, "tipo": "llm_delta", "papel": "cacador", "texto": "}}"}
+{"ts": 1790691728.2296886, "tipo": "llm_fim", "papel": "cacador", "passo": 1, "tokens": 13, "tok_s": 24.1, "segundos": 6.3, "origem": "texto_json", "tokens_prompt": 756}
+{"ts": 1790691728.2312596, "tipo": "ferramenta", "papel": "cacador", "nome": "ler_codigo", "argumentos": {}}
+{"ts": 1790691728.2380555, "tipo": "resultado", "papel": "cacador", "nome": "ler_codigo", "repetida": false, "dados": null, "texto": "  1| \"\"\"Regras de preço de uma distribuidora (campo de jogo da Arena).\"\"\"\n  2| \n  3| \n  4| def subtotal(itens):\n  5|     \"\"\"Soma preco * quantidade de cada item. Lista vazia -> 0.0.\"\"\"\n  6|     total = 0.0\n  7|     for item in itens:\n  8|         total += item[\"preco\"] * item[\"quantidade\"]\n  9|     return round(total, 2)\n 10| \n 11| \n 12| def desconto_volume(quantidade_total):\n 13|     \"\"\"Percentual de desconto por volume:\n 14|     >= 100 unidades -> 10%; >= 50 unidades -> 5%; abaixo de 50 -> 0%.\"\"\"\n 15|     if quantidade_total >= 100:\n 16|         return 0.10\n 17|     if quantidade_total >= 50:\n 18|         return 0.05\n 19|     return 0.0\n 20| \n 21| \n 22| def aplicar_cupom(valor, cupom):\n 23|     \"\"\"Cupons: 'PRIMEIRA10' tira 10% do valor; 'MENOS20' tira R$ 20,00 fixos\n 24|     somente se o valor for maior ou igual a R$ 100,00. Cupom desconhecido ou\n 25|     None nao altera o valor. O resultado nunca e negativo.\"\"\"\n 26|     if cupom == \"PRIMEIRA10\":\n 27|         valor = valor * 0.90\n 28|     elif cupom == \"MENOS20\" and valor >= 100:\n 29|         valor = valor - 20\n 30|     return round(max(valor, 0.0), 2)\n 31| \n 32| \n 33| def frete(subtotal_pedido, uf):\n 34|     \"\"\"Frete: gratis para GO com subtotal >= R$ 300,00. Senao: GO paga R$ 15,00,\n 35|     DF paga R$ 25,00 e qualquer outra UF paga R$ 40,00.\"\"\"\n 36|     if uf == \"GO\" and subtotal_pedido >= 300:\n 37|         return 0.0\n 38|     if uf == \"GO\":\n 39|         return 15.0\n 40|     if uf == \"DF\":\n 41|         return 24.99\n 42|     return 40.0\n 43| \n 44| \n 45| def total_pedido(itens, uf, cupom=None):\n 46|     \"\"\"Total = subtotal com desconto de volume, depois cupom, depois soma o frete.\n 47|     O frete e calculado sobre o subtotal ORIGINAL (antes dos descontos).\"\"\"\n 48|     base = subtotal(itens)\n 49|     quantidade = sum(item[\"quantidade\"] for item in itens)\n 50|     com_volume = base * (1 - desconto_volume(quantidade))\n 51|     com_cupom = aplicar_cupom(com_volume, cupom)\n 52|     return round(com_cupom + frete(base, uf), 2)"}
+{"ts": 1790691728.2380652, "tipo": "pensando", "papel": "cacador", "passo": 2}
+{"ts": 1790691734.880044, "tipo": "llm_delta", "papel": "cacador", "texto": "{\""}
+{"ts": 1790691734.9775226, "tipo": "llm_delta", "papel": "cacador", "texto": "name\":"}
+{"ts": 1790691735.071981, "tipo": "llm_delta", "papel": "cacador", "texto": " \"ler"}
+{"ts": 1790691735.1675222, "tipo": "llm_delta", "papel": "cacador", "texto": "_testes"}
+{"ts": 1790691735.2606926, "tipo": "llm_delta", "papel": "cacador", "texto": "\", \""}
+{"ts": 1790691735.3562524, "tipo": "llm_delta", "papel": "cacador", "texto": "arguments\":"}
+{"ts": 1790691735.4474576, "tipo": "llm_delta", "papel": "cacador", "texto": " {}}"}
+{"ts": 1790691735.496209, "tipo": "llm_fim", "papel": "cacador", "passo": 2, "tokens": 14, "tok_s": 22.8, "segundos": 7.3, "origem": "texto_json", "tokens_prompt": 1595}
+{"ts": 1790691735.4983222, "tipo": "ferramenta", "papel": "cacador", "nome": "ler_testes", "argumentos": {}}
+{"ts": 1790691735.5047789, "tipo": "resultado", "papel": "cacador", "nome": "ler_testes", "repetida": false, "dados": null, "texto": "# ===== test_base.py =====\n\"\"\"Suíte inicial propositalmente fraca: o Mutante começa com vantagem.\"\"\"\nfrom descontos import subtotal, total_pedido\n\n\ndef test_subtotal_simples():\n    assert subtotal([{\"preco\": 10.0, \"quantidade\": 3}]) == 30.0\n\n\ndef test_total_pedido_go_sem_cupom():\n    itens = [{\"preco\": 5.0, \"quantidade\": 10}]\n    assert total_pedido(itens, \"GO\") == 65.0\n"}
+{"ts": 1790691735.5047789, "tipo": "pensando", "papel": "cacador", "passo": 3}
+{"ts": 1790691736.8719654, "tipo": "llm_delta", "papel": "cacador", "texto": "{\""}
+{"ts": 1790691736.9729145, "tipo": "llm_delta", "papel": "cacador", "texto": "name\":"}
+{"ts": 1790691737.0742426, "tipo": "llm_delta", "papel": "cacador", "texto": " \"env"}
+{"ts": 1790691737.1716645, "tipo": "llm_delta", "papel": "cacador", "texto": "iar_test"}
+{"ts": 1790691737.2699003, "tipo": "llm_delta", "papel": "cacador", "texto": "e\","}
+{"ts": 1790691737.3691113, "tipo": "llm_delta", "papel": "cacador", "texto": " \"arguments"}
+{"ts": 1790691737.4638698, "tipo": "llm_delta", "papel": "cacador", "texto": "\": {\""}
+{"ts": 1790691737.5573518, "tipo": "llm_delta", "papel": "cacador", "texto": "codigo\":"}
+{"ts": 1790691737.6531546, "tipo": "llm_delta", "papel": "cacador", "texto": " \"from"}
+{"ts": 1790691737.7502947, "tipo": "llm_delta", "papel": "cacador", "texto": " descont"}
+{"ts": 1790691737.842708, "tipo": "llm_delta", "papel": "cacador", "texto": "os import"}
+{"ts": 1790691737.9360266, "tipo": "llm_delta", "papel": "cacador", "texto": " subtotal,"}
+{"ts": 1790691738.0237527, "tipo": "llm_delta", "papel": "cacador", "texto": " total_pedido"}
+{"ts": 1790691738.127612, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691738.2233257, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691738.320558, "tipo": "llm_delta", "papel": "cacador", "texto": "_desconto"}
+{"ts": 1790691738.4189491, "tipo": "llm_delta", "papel": "cacador", "texto": "_volume_"}
+{"ts": 1790691738.5099392, "tipo": "llm_delta", "papel": "cacador", "texto": "49"}
+{"ts": 1790691738.6016746, "tipo": "llm_delta", "papel": "cacador", "texto": "_unidades"}
+{"ts": 1790691738.6937547, "tipo": "llm_delta", "papel": "cacador", "texto": "():\\"}
+{"ts": 1790691738.7850158, "tipo": "llm_delta", "papel": "cacador", "texto": "n   "}
+{"ts": 1790691738.8761876, "tipo": "llm_delta", "papel": "cacador", "texto": " assert subtotal"}
+{"ts": 1790691738.9598637, "tipo": "llm_delta", "papel": "cacador", "texto": "([{'"}
+{"ts": 1790691739.0608397, "tipo": "llm_delta", "papel": "cacador", "texto": "preco"}
+{"ts": 1790691739.1564558, "tipo": "llm_delta", "papel": "cacador", "texto": "': "}
+{"ts": 1790691739.2483997, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691739.341897, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691739.4366384, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691739.5285509, "tipo": "llm_delta", "papel": "cacador", "texto": "quantidade"}
+{"ts": 1790691739.6194513, "tipo": "llm_delta", "papel": "cacador", "texto": "': "}
+{"ts": 1790691739.7129452, "tipo": "llm_delta", "papel": "cacador", "texto": "49"}
+{"ts": 1790691739.80511, "tipo": "llm_delta", "papel": "cacador", "texto": "}])"}
+{"ts": 1790691739.8978803, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691739.991751, "tipo": "llm_delta", "papel": "cacador", "texto": "49"}
+{"ts": 1790691740.0867436, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691740.1835816, "tipo": "llm_delta", "papel": "cacador", "texto": "0\\n"}
+{"ts": 1790691740.279605, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691740.3728263, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691740.466285, "tipo": "llm_delta", "papel": "cacador", "texto": "_desconto"}
+{"ts": 1790691740.5609524, "tipo": "llm_delta", "papel": "cacador", "texto": "_volume_"}
+{"ts": 1790691740.65666, "tipo": "llm_delta", "papel": "cacador", "texto": "50"}
+{"ts": 1790691740.7481651, "tipo": "llm_delta", "papel": "cacador", "texto": "_unidades"}
+{"ts": 1790691740.8404305, "tipo": "llm_delta", "papel": "cacador", "texto": "():\\"}
+{"ts": 1790691740.9333737, "tipo": "llm_delta", "papel": "cacador", "texto": "n   "}
+{"ts": 1790691741.0252824, "tipo": "llm_delta", "papel": "cacador", "texto": " assert subtotal"}
+{"ts": 1790691741.1164677, "tipo": "llm_delta", "papel": "cacador", "texto": "([{'"}
+{"ts": 1790691741.2083907, "tipo": "llm_delta", "papel": "cacador", "texto": "preco"}
+{"ts": 1790691741.300611, "tipo": "llm_delta", "papel": "cacador", "texto": "': "}
+{"ts": 1790691741.395811, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691741.490431, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691741.5889494, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691741.6853018, "tipo": "llm_delta", "papel": "cacador", "texto": "quantidade"}
+{"ts": 1790691741.7789712, "tipo": "llm_delta", "papel": "cacador", "texto": "': "}
+{"ts": 1790691741.872852, "tipo": "llm_delta", "papel": "cacador", "texto": "50"}
+{"ts": 1790691741.9671779, "tipo": "llm_delta", "papel": "cacador", "texto": "}])"}
+{"ts": 1790691742.05943, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691742.1531808, "tipo": "llm_delta", "papel": "cacador", "texto": "50"}
+{"ts": 1790691742.2458913, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691742.3397906, "tipo": "llm_delta", "papel": "cacador", "texto": "0\\n"}
+{"ts": 1790691742.434073, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691742.5269945, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691742.619711, "tipo": "llm_delta", "papel": "cacador", "texto": "_desconto"}
+{"ts": 1790691742.7144883, "tipo": "llm_delta", "papel": "cacador", "texto": "_volume_"}
+{"ts": 1790691742.8079503, "tipo": "llm_delta", "papel": "cacador", "texto": "99"}
+{"ts": 1790691742.9019625, "tipo": "llm_delta", "papel": "cacador", "texto": "_unidades"}
+{"ts": 1790691742.9953077, "tipo": "llm_delta", "papel": "cacador", "texto": "():\\"}
+{"ts": 1790691743.0873384, "tipo": "llm_delta", "papel": "cacador", "texto": "n   "}
+{"ts": 1790691743.1795585, "tipo": "llm_delta", "papel": "cacador", "texto": " assert subtotal"}
+{"ts": 1790691743.2740633, "tipo": "llm_delta", "papel": "cacador", "texto": "([{'"}
+{"ts": 1790691743.3720915, "tipo": "llm_delta", "papel": "cacador", "texto": "preco"}
+{"ts": 1790691743.4805, "tipo": "llm_delta", "papel": "cacador", "texto": "': "}
+{"ts": 1790691743.5781, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691743.671749, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691743.766656, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691743.8596072, "tipo": "llm_delta", "papel": "cacador", "texto": "quantidade"}
+{"ts": 1790691743.9521034, "tipo": "llm_delta", "papel": "cacador", "texto": "': "}
+{"ts": 1790691744.0448554, "tipo": "llm_delta", "papel": "cacador", "texto": "99"}
+{"ts": 1790691744.1400976, "tipo": "llm_delta", "papel": "cacador", "texto": "}])"}
+{"ts": 1790691744.2390237, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691744.3391283, "tipo": "llm_delta", "papel": "cacador", "texto": "99"}
+{"ts": 1790691744.4349117, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691744.5366454, "tipo": "llm_delta", "papel": "cacador", "texto": "0\\n"}
+{"ts": 1790691744.6234837, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691744.7215276, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691744.8160858, "tipo": "llm_delta", "papel": "cacador", "texto": "_desconto"}
+{"ts": 1790691744.9088123, "tipo": "llm_delta", "papel": "cacador", "texto": "_volume_"}
+{"ts": 1790691745.0026047, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691745.096129, "tipo": "llm_delta", "papel": "cacador", "texto": "0_un"}
+{"ts": 1790691745.1887724, "tipo": "llm_delta", "papel": "cacador", "texto": "idades():"}
+{"ts": 1790691745.2806728, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691745.3731592, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691745.4648006, "tipo": "llm_delta", "papel": "cacador", "texto": " subtotal(["}
+{"ts": 1790691745.557712, "tipo": "llm_delta", "papel": "cacador", "texto": "{'pre"}
+{"ts": 1790691745.649527, "tipo": "llm_delta", "papel": "cacador", "texto": "co':"}
+{"ts": 1790691745.7421749, "tipo": "llm_delta", "papel": "cacador", "texto": " 1"}
+{"ts": 1790691745.8357286, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691745.9291253, "tipo": "llm_delta", "papel": "cacador", "texto": "0,"}
+{"ts": 1790691746.0227354, "tipo": "llm_delta", "papel": "cacador", "texto": " 'quant"}
+{"ts": 1790691746.1172838, "tipo": "llm_delta", "papel": "cacador", "texto": "idade':"}
+{"ts": 1790691746.2118478, "tipo": "llm_delta", "papel": "cacador", "texto": " 1"}
+{"ts": 1790691746.3045921, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691746.397755, "tipo": "llm_delta", "papel": "cacador", "texto": "}])"}
+{"ts": 1790691746.48838, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691746.579792, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691746.6722283, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691746.7629511, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691746.8553612, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\","}
+{"ts": 1790691746.9509614, "tipo": "llm_delta", "papel": "cacador", "texto": " \"just"}
+{"ts": 1790691747.0469966, "tipo": "llm_delta", "papel": "cacador", "texto": "ificativa"}
+{"ts": 1790691747.1404166, "tipo": "llm_delta", "papel": "cacador", "texto": "\": \""}
+{"ts": 1790691747.2333896, "tipo": "llm_delta", "papel": "cacador", "texto": "Testa"}
+{"ts": 1790691747.3258195, "tipo": "llm_delta", "papel": "cacador", "texto": " os limit"}
+{"ts": 1790691747.4185808, "tipo": "llm_delta", "papel": "cacador", "texto": "es infer"}
+{"ts": 1790691747.5110357, "tipo": "llm_delta", "papel": "cacador", "texto": "iores e"}
+{"ts": 1790691747.6030457, "tipo": "llm_delta", "papel": "cacador", "texto": " superiores"}
+{"ts": 1790691747.6948416, "tipo": "llm_delta", "papel": "cacador", "texto": " do des"}
+{"ts": 1790691747.7883186, "tipo": "llm_delta", "papel": "cacador", "texto": "conto por"}
+{"ts": 1790691747.8815012, "tipo": "llm_delta", "papel": "cacador", "texto": " volume.\""}
+{"ts": 1790691747.980009, "tipo": "llm_delta", "papel": "cacador", "texto": "}}"}
+{"ts": 1790691747.9818938, "tipo": "llm_fim", "papel": "cacador", "passo": 3, "tokens": 237, "tok_s": 21.3, "segundos": 12.5, "origem": "texto_json", "tokens_prompt": 1746}
+{"ts": 1790691747.9842231, "tipo": "ferramenta", "papel": "cacador", "nome": "enviar_teste", "argumentos": {"codigo": "from descontos import subtotal, total_pedido\n\ndef test_desconto_volume_49_unidades():\n    assert subtotal([{'preco': 10.0, 'quantidade': 49}]) == 490.0\n\n\ndef test_desconto_volume_50_unidades():\n    assert subtotal([{'preco': 10.0, 'quantidade': 50}]) == 500.0\n\n\ndef test_desconto_volume_99_unidades():\n    assert subtotal([{'preco': 10.0, 'quantidade': 99}]) == 990.0\n\n\ndef test_desconto_volume_100_unidades():\n    assert subtotal([{'preco': 10.0, 'quantidade': 100}]) == 1000.0\n", "justificativa": "Testa os limites inferiores e superiores do desconto por volume."}}
+{"ts": 1790691750.3434505, "tipo": "resultado", "papel": "cacador", "nome": "enviar_teste", "repetida": false, "dados": {"matou": false, "motivo": "nao_detectou", "detalhe": "seus testes válidos passam no código com bug: não detectam o mutante. O bug está em outra regra ou outro valor-limite: cubra mais funções e limites.", "tentativas_restantes": 2, "turno_encerrado": false, "funcoes_validas": ["test_desconto_volume_49_unidades", "test_desconto_volume_50_unidades", "test_desconto_volume_99_unidades", "test_desconto_volume_100_unidades"], "funcoes_alucinadas": []}, "texto": null}
+{"ts": 1790691750.3434505, "tipo": "pensando", "papel": "cacador", "passo": 4}
+{"ts": 1790691752.180698, "tipo": "llm_delta", "papel": "cacador", "texto": "{\""}
+{"ts": 1790691752.2895558, "tipo": "llm_delta", "papel": "cacador", "texto": "name\":"}
+{"ts": 1790691752.385599, "tipo": "llm_delta", "papel": "cacador", "texto": " \"env"}
+{"ts": 1790691752.4799805, "tipo": "llm_delta", "papel": "cacador", "texto": "iar_test"}
+{"ts": 1790691752.5757012, "tipo": "llm_delta", "papel": "cacador", "texto": "e\","}
+{"ts": 1790691752.6694448, "tipo": "llm_delta", "papel": "cacador", "texto": " \"arguments"}
+{"ts": 1790691752.7625952, "tipo": "llm_delta", "papel": "cacador", "texto": "\": {\""}
+{"ts": 1790691752.8546968, "tipo": "llm_delta", "papel": "cacador", "texto": "codigo\":"}
+{"ts": 1790691752.9523199, "tipo": "llm_delta", "papel": "cacador", "texto": " \"from"}
+{"ts": 1790691753.044803, "tipo": "llm_delta", "papel": "cacador", "texto": " descont"}
+{"ts": 1790691753.1375146, "tipo": "llm_delta", "papel": "cacador", "texto": "os import"}
+{"ts": 1790691753.2302046, "tipo": "llm_delta", "papel": "cacador", "texto": " subtotal,"}
+{"ts": 1790691753.3281395, "tipo": "llm_delta", "papel": "cacador", "texto": " total_pedido"}
+{"ts": 1790691753.423552, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691753.518661, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691753.6123822, "tipo": "llm_delta", "papel": "cacador", "texto": "_aplic"}
+{"ts": 1790691753.7046185, "tipo": "llm_delta", "papel": "cacador", "texto": "ar_c"}
+{"ts": 1790691753.7978332, "tipo": "llm_delta", "papel": "cacador", "texto": "upom"}
+{"ts": 1790691753.8904593, "tipo": "llm_delta", "papel": "cacador", "texto": "_primeira"}
+{"ts": 1790691753.9866037, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691754.0826383, "tipo": "llm_delta", "papel": "cacador", "texto": "():\\"}
+{"ts": 1790691754.1791894, "tipo": "llm_delta", "papel": "cacador", "texto": "n   "}
+{"ts": 1790691754.274223, "tipo": "llm_delta", "papel": "cacador", "texto": " assert aplic"}
+{"ts": 1790691754.3705223, "tipo": "llm_delta", "papel": "cacador", "texto": "ar_c"}
+{"ts": 1790691754.467593, "tipo": "llm_delta", "papel": "cacador", "texto": "upom"}
+{"ts": 1790691754.5619447, "tipo": "llm_delta", "papel": "cacador", "texto": "(1"}
+{"ts": 1790691754.6565828, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691754.7506309, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691754.8439791, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691754.9379797, "tipo": "llm_delta", "papel": "cacador", "texto": "PRIME"}
+{"ts": 1790691755.0327258, "tipo": "llm_delta", "papel": "cacador", "texto": "IRA1"}
+{"ts": 1790691755.1273384, "tipo": "llm_delta", "papel": "cacador", "texto": "0')"}
+{"ts": 1790691755.2219396, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691755.3171678, "tipo": "llm_delta", "papel": "cacador", "texto": "90"}
+{"ts": 1790691755.412424, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691755.5082512, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\n"}
+{"ts": 1790691755.6010199, "tipo": "llm_delta", "papel": "cacador", "texto": "\\ndef"}
+{"ts": 1790691755.6949794, "tipo": "llm_delta", "papel": "cacador", "texto": " test_ap"}
+{"ts": 1790691755.7889597, "tipo": "llm_delta", "papel": "cacador", "texto": "licar"}
+{"ts": 1790691755.8831317, "tipo": "llm_delta", "papel": "cacador", "texto": "_cup"}
+{"ts": 1790691755.977729, "tipo": "llm_delta", "papel": "cacador", "texto": "om_m"}
+{"ts": 1790691756.0718236, "tipo": "llm_delta", "papel": "cacador", "texto": "enos2"}
+{"ts": 1790691756.1655219, "tipo": "llm_delta", "papel": "cacador", "texto": "0_ac"}
+{"ts": 1790691756.2591655, "tipo": "llm_delta", "papel": "cacador", "texto": "ima_"}
+{"ts": 1790691756.3541386, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691756.447024, "tipo": "llm_delta", "papel": "cacador", "texto": "0():"}
+{"ts": 1790691756.5423017, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691756.6390615, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691756.7362554, "tipo": "llm_delta", "papel": "cacador", "texto": " aplicar"}
+{"ts": 1790691756.8313298, "tipo": "llm_delta", "papel": "cacador", "texto": "_cup"}
+{"ts": 1790691756.9270155, "tipo": "llm_delta", "papel": "cacador", "texto": "om("}
+{"ts": 1790691757.0227184, "tipo": "llm_delta", "papel": "cacador", "texto": "15"}
+{"ts": 1790691757.117269, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691757.2117023, "tipo": "llm_delta", "papel": "cacador", "texto": "0,"}
+{"ts": 1790691757.3063066, "tipo": "llm_delta", "papel": "cacador", "texto": " 'M"}
+{"ts": 1790691757.4000013, "tipo": "llm_delta", "papel": "cacador", "texto": "ENOS"}
+{"ts": 1790691757.4939582, "tipo": "llm_delta", "papel": "cacador", "texto": "20"}
+{"ts": 1790691757.5909832, "tipo": "llm_delta", "papel": "cacador", "texto": "') =="}
+{"ts": 1790691757.6861105, "tipo": "llm_delta", "papel": "cacador", "texto": " 1"}
+{"ts": 1790691757.7803404, "tipo": "llm_delta", "papel": "cacador", "texto": "30"}
+{"ts": 1790691757.8752642, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691757.9679039, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\n"}
+{"ts": 1790691758.0624576, "tipo": "llm_delta", "papel": "cacador", "texto": "\\ndef"}
+{"ts": 1790691758.1561847, "tipo": "llm_delta", "papel": "cacador", "texto": " test_ap"}
+{"ts": 1790691758.2500072, "tipo": "llm_delta", "papel": "cacador", "texto": "licar"}
+{"ts": 1790691758.3348875, "tipo": "llm_delta", "papel": "cacador", "texto": "_cup"}
+{"ts": 1790691758.4367712, "tipo": "llm_delta", "papel": "cacador", "texto": "om_m"}
+{"ts": 1790691758.530155, "tipo": "llm_delta", "papel": "cacador", "texto": "enos2"}
+{"ts": 1790691758.6248348, "tipo": "llm_delta", "papel": "cacador", "texto": "0_"}
+{"ts": 1790691758.7239966, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691758.8169482, "tipo": "llm_delta", "papel": "cacador", "texto": "0():"}
+{"ts": 1790691758.9106777, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691759.0052004, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691759.0999699, "tipo": "llm_delta", "papel": "cacador", "texto": " aplicar"}
+{"ts": 1790691759.1939576, "tipo": "llm_delta", "papel": "cacador", "texto": "_cup"}
+{"ts": 1790691759.289382, "tipo": "llm_delta", "papel": "cacador", "texto": "om("}
+{"ts": 1790691759.3822458, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691759.4751136, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691759.568494, "tipo": "llm_delta", "papel": "cacador", "texto": "0,"}
+{"ts": 1790691759.6628788, "tipo": "llm_delta", "papel": "cacador", "texto": " 'M"}
+{"ts": 1790691759.7623641, "tipo": "llm_delta", "papel": "cacador", "texto": "ENOS"}
+{"ts": 1790691759.859203, "tipo": "llm_delta", "papel": "cacador", "texto": "20"}
+{"ts": 1790691759.9532497, "tipo": "llm_delta", "papel": "cacador", "texto": "') =="}
+{"ts": 1790691760.0482671, "tipo": "llm_delta", "papel": "cacador", "texto": " 8"}
+{"ts": 1790691760.1434238, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691760.2371137, "tipo": "llm_delta", "papel": "cacador", "texto": "0\\n"}
+{"ts": 1790691760.3331077, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691760.428191, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691760.5214102, "tipo": "llm_delta", "papel": "cacador", "texto": "_aplic"}
+{"ts": 1790691760.6165543, "tipo": "llm_delta", "papel": "cacador", "texto": "ar_c"}
+{"ts": 1790691760.7127104, "tipo": "llm_delta", "papel": "cacador", "texto": "upom"}
+{"ts": 1790691760.8102098, "tipo": "llm_delta", "papel": "cacador", "texto": "_cup"}
+{"ts": 1790691760.9047077, "tipo": "llm_delta", "papel": "cacador", "texto": "om_des"}
+{"ts": 1790691760.9987836, "tipo": "llm_delta", "papel": "cacador", "texto": "conhec"}
+{"ts": 1790691761.0956702, "tipo": "llm_delta", "papel": "cacador", "texto": "ido():"}
+{"ts": 1790691761.1902773, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691761.2838175, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691761.3786862, "tipo": "llm_delta", "papel": "cacador", "texto": " aplicar"}
+{"ts": 1790691761.4739695, "tipo": "llm_delta", "papel": "cacador", "texto": "_cup"}
+{"ts": 1790691761.5690684, "tipo": "llm_delta", "papel": "cacador", "texto": "om("}
+{"ts": 1790691761.663087, "tipo": "llm_delta", "papel": "cacador", "texto": "10"}
+{"ts": 1790691761.7592523, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691761.8570976, "tipo": "llm_delta", "papel": "cacador", "texto": "0,"}
+{"ts": 1790691761.9514496, "tipo": "llm_delta", "papel": "cacador", "texto": " 'DESC"}
+{"ts": 1790691762.046707, "tipo": "llm_delta", "papel": "cacador", "texto": "ONHE"}
+{"ts": 1790691762.14154, "tipo": "llm_delta", "papel": "cacador", "texto": "CIDO"}
+{"ts": 1790691762.2344642, "tipo": "llm_delta", "papel": "cacador", "texto": "') =="}
+{"ts": 1790691762.3298938, "tipo": "llm_delta", "papel": "cacador", "texto": " 1"}
+{"ts": 1790691762.4233482, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691762.5172029, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691762.6110423, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\","}
+{"ts": 1790691762.7089708, "tipo": "llm_delta", "papel": "cacador", "texto": " \"just"}
+{"ts": 1790691762.8029537, "tipo": "llm_delta", "papel": "cacador", "texto": "ificativa"}
+{"ts": 1790691762.897104, "tipo": "llm_delta", "papel": "cacador", "texto": "\": \""}
+{"ts": 1790691762.9936676, "tipo": "llm_delta", "papel": "cacador", "texto": "Testa"}
+{"ts": 1790691763.088768, "tipo": "llm_delta", "papel": "cacador", "texto": " os limit"}
+{"ts": 1790691763.184451, "tipo": "llm_delta", "papel": "cacador", "texto": "es dos"}
+{"ts": 1790691763.2798166, "tipo": "llm_delta", "papel": "cacador", "texto": " cupons"}
+{"ts": 1790691763.374228, "tipo": "llm_delta", "papel": "cacador", "texto": " e valores"}
+{"ts": 1790691763.4696832, "tipo": "llm_delta", "papel": "cacador", "texto": ".\"}}"}
+{"ts": 1790691763.5178802, "tipo": "llm_fim", "papel": "cacador", "passo": 4, "tokens": 240, "tok_s": 21.2, "segundos": 13.2, "origem": "texto_json", "tokens_prompt": 2145}
+{"ts": 1790691763.5205345, "tipo": "ferramenta", "papel": "cacador", "nome": "enviar_teste", "argumentos": {"codigo": "from descontos import subtotal, total_pedido\n\ndef test_aplicar_cupom_primeira10():\n    assert aplicar_cupom(100.0, 'PRIMEIRA10') == 90.0\n\n\ndef test_aplicar_cupom_menos20_acima_100():\n    assert aplicar_cupom(150.0, 'MENOS20') == 130.0\n\n\ndef test_aplicar_cupom_menos20_100():\n    assert aplicar_cupom(100.0, 'MENOS20') == 80.0\n\n\ndef test_aplicar_cupom_cupom_desconhecido():\n    assert aplicar_cupom(100.0, 'DESCONHECIDO') == 100.0\n", "justificativa": "Testa os limites dos cupons e valores."}}
+{"ts": 1790691764.704789, "tipo": "resultado", "papel": "cacador", "nome": "enviar_teste", "repetida": false, "dados": {"matou": false, "motivo": "expectativa_errada", "detalhe": "todos os seus 4 testes FALHAM no código correto: as expectativas contradizem a especificação (docstrings). Recalcule os valores esperados pela docstring.", "tentativas_restantes": 1, "turno_encerrado": false, "funcoes_validas": [], "funcoes_alucinadas": ["test_aplicar_cupom_cupom_desconhecido", "test_aplicar_cupom_menos20_100", "test_aplicar_cupom_menos20_acima_100", "test_aplicar_cupom_primeira10"]}, "texto": null}
+{"ts": 1790691764.704789, "tipo": "pensando", "papel": "cacador", "passo": 5}
+{"ts": 1790691766.4739983, "tipo": "llm_delta", "papel": "cacador", "texto": "{\""}
+{"ts": 1790691766.5822613, "tipo": "llm_delta", "papel": "cacador", "texto": "name\":"}
+{"ts": 1790691766.6796288, "tipo": "llm_delta", "papel": "cacador", "texto": " \"ler"}
+{"ts": 1790691766.7757773, "tipo": "llm_delta", "papel": "cacador", "texto": "_codigo\","}
+{"ts": 1790691766.873006, "tipo": "llm_delta", "papel": "cacador", "texto": " \"arguments"}
+{"ts": 1790691766.9705322, "tipo": "llm_delta", "papel": "cacador", "texto": "\": {"}
+{"ts": 1790691767.066747, "tipo": "llm_delta", "papel": "cacador", "texto": "}}"}
+{"ts": 1790691767.0683324, "tipo": "llm_fim", "papel": "cacador", "passo": 5, "tokens": 13, "tok_s": 21.9, "segundos": 2.4, "origem": "texto_json", "tokens_prompt": 2562}
+{"ts": 1790691767.069384, "tipo": "ferramenta", "papel": "cacador", "nome": "ler_codigo", "argumentos": {}}
+{"ts": 1790691767.075673, "tipo": "resultado", "papel": "cacador", "nome": "ler_codigo", "repetida": true, "dados": null, "texto": "  1| \"\"\"Regras de preço de uma distribuidora (campo de jogo da Arena).\"\"\"\n  2| \n  3| \n  4| def subtotal(itens):\n  5|     \"\"\"Soma preco * quantidade de cada item. Lista vazia -> 0.0.\"\"\"\n  6|     total = 0.0\n  7|     for item in itens:\n  8|         total += item[\"preco\"] * item[\"quantidade\"]\n  9|     return round(total, 2)\n 10| \n 11| \n 12| def desconto_volume(quantidade_total):\n 13|     \"\"\"Percentual de desconto por volume:\n 14|     >= 100 unidades -> 10%; >= 50 unidades -> 5%; abaixo de 50 -> 0%.\"\"\"\n 15|     if quantidade_total >= 100:\n 16|         return 0.10\n 17|     if quantidade_total >= 50:\n 18|         return 0.05\n 19|     return 0.0\n 20| \n 21| \n 22| def aplicar_cupom(valor, cupom):\n 23|     \"\"\"Cupons: 'PRIMEIRA10' tira 10% do valor; 'MENOS20' tira R$ 20,00 fixos\n 24|     somente se o valor for maior ou igual a R$ 100,00. Cupom desconhecido ou\n 25|     None nao altera o valor. O resultado nunca e negativo.\"\"\"\n 26|     if cupom == \"PRIMEIRA10\":\n 27|         valor = valor * 0.90\n 28|     elif cupom == \"MENOS20\" and valor >= 100:\n 29|         valor = valor - 20\n 30|     return round(max(valor, 0.0), 2)\n 31| \n 32| \n 33| def frete(subtotal_pedido, uf):\n 34|     \"\"\"Frete: gratis para GO com subtotal >= R$ 300,00. Senao: GO paga R$ 15,00,\n 35|     DF paga R$ 25,00 e qualquer outra UF paga R$ 40,00.\"\"\"\n 36|     if uf == \"GO\" and subtotal_pedido >= 300:\n 37|         return 0.0\n 38|     if uf == \"GO\":\n 39|         return 15.0\n 40|     if uf == \"DF\":\n 41|         return 24.99\n 42|     return 40.0\n 43| \n 44| \n 45| def total_pedido(itens, uf, cupom=None):\n 46|     \"\"\"Total = subtotal com desconto de volume, depois cupom, depois soma o frete.\n 47|     O frete e calculado sobre o subtotal ORIGINAL (antes dos descontos).\"\"\"\n 48|     base = subtotal(itens)\n 49|     quantidade = sum(item[\"quantidade\"] for item in itens)\n 50|     com_volume = base * (1 - desconto_volume(quantidade))\n 51|     com_cupom = aplicar_cupom(com_volume, cupom)\n 52|     return round(com_cupom + frete(base, uf), 2)"}
+{"ts": 1790691767.076229, "tipo": "pensando", "papel": "cacador", "passo": 6}
+{"ts": 1790691767.542206, "tipo": "llm_delta", "papel": "cacador", "texto": "{\""}
+{"ts": 1790691767.6444452, "tipo": "llm_delta", "papel": "cacador", "texto": "name\":"}
+{"ts": 1790691767.7398064, "tipo": "llm_delta", "papel": "cacador", "texto": " \"env"}
+{"ts": 1790691767.8355076, "tipo": "llm_delta", "papel": "cacador", "texto": "iar_test"}
+{"ts": 1790691767.9309645, "tipo": "llm_delta", "papel": "cacador", "texto": "e\","}
+{"ts": 1790691768.0308418, "tipo": "llm_delta", "papel": "cacador", "texto": " \"arguments"}
+{"ts": 1790691768.1318927, "tipo": "llm_delta", "papel": "cacador", "texto": "\": {\""}
+{"ts": 1790691768.2326326, "tipo": "llm_delta", "papel": "cacador", "texto": "codigo\":"}
+{"ts": 1790691768.3332956, "tipo": "llm_delta", "papel": "cacador", "texto": " \"from"}
+{"ts": 1790691768.4339254, "tipo": "llm_delta", "papel": "cacador", "texto": " descont"}
+{"ts": 1790691768.5323243, "tipo": "llm_delta", "papel": "cacador", "texto": "os import"}
+{"ts": 1790691768.629846, "tipo": "llm_delta", "papel": "cacador", "texto": " subtotal,"}
+{"ts": 1790691768.7274117, "tipo": "llm_delta", "papel": "cacador", "texto": " total_pedido"}
+{"ts": 1790691768.8226576, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691768.917374, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691769.011671, "tipo": "llm_delta", "papel": "cacador", "texto": "_frete"}
+{"ts": 1790691769.1085532, "tipo": "llm_delta", "papel": "cacador", "texto": "_go_ac"}
+{"ts": 1790691769.2024825, "tipo": "llm_delta", "papel": "cacador", "texto": "ima_"}
+{"ts": 1790691769.2979913, "tipo": "llm_delta", "papel": "cacador", "texto": "30"}
+{"ts": 1790691769.3964741, "tipo": "llm_delta", "papel": "cacador", "texto": "0():"}
+{"ts": 1790691769.489378, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691769.5875485, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691769.682012, "tipo": "llm_delta", "papel": "cacador", "texto": " frete"}
+{"ts": 1790691769.7755637, "tipo": "llm_delta", "papel": "cacador", "texto": "(3"}
+{"ts": 1790691769.8711455, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691769.9657476, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691770.0611713, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691770.157263, "tipo": "llm_delta", "papel": "cacador", "texto": "GO')"}
+{"ts": 1790691770.2540562, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691770.351494, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691770.4493217, "tipo": "llm_delta", "papel": "cacador", "texto": "0\\n"}
+{"ts": 1790691770.545343, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691770.6409655, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691770.737635, "tipo": "llm_delta", "papel": "cacador", "texto": "_frete"}
+{"ts": 1790691770.831928, "tipo": "llm_delta", "papel": "cacador", "texto": "_go_"}
+{"ts": 1790691770.9263813, "tipo": "llm_delta", "papel": "cacador", "texto": "30"}
+{"ts": 1790691771.0210035, "tipo": "llm_delta", "papel": "cacador", "texto": "0():"}
+{"ts": 1790691771.1168177, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691771.2132804, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691771.3078332, "tipo": "llm_delta", "papel": "cacador", "texto": " frete"}
+{"ts": 1790691771.4055493, "tipo": "llm_delta", "papel": "cacador", "texto": "(3"}
+{"ts": 1790691771.5022678, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691771.597372, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691771.6914551, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691771.7865872, "tipo": "llm_delta", "papel": "cacador", "texto": "GO')"}
+{"ts": 1790691771.8803012, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691771.9749382, "tipo": "llm_delta", "papel": "cacador", "texto": "15"}
+{"ts": 1790691772.0712056, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691772.1668277, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\n"}
+{"ts": 1790691772.260444, "tipo": "llm_delta", "papel": "cacador", "texto": "\\ndef"}
+{"ts": 1790691772.3560567, "tipo": "llm_delta", "papel": "cacador", "texto": " test_fre"}
+{"ts": 1790691772.450979, "tipo": "llm_delta", "papel": "cacador", "texto": "te_df"}
+{"ts": 1790691772.5477285, "tipo": "llm_delta", "papel": "cacador", "texto": "():\\"}
+{"ts": 1790691772.6445606, "tipo": "llm_delta", "papel": "cacador", "texto": "n   "}
+{"ts": 1790691772.7407513, "tipo": "llm_delta", "papel": "cacador", "texto": " assert fre"}
+{"ts": 1790691772.8358927, "tipo": "llm_delta", "papel": "cacador", "texto": "te("}
+{"ts": 1790691772.931122, "tipo": "llm_delta", "papel": "cacador", "texto": "30"}
+{"ts": 1790691773.025885, "tipo": "llm_delta", "papel": "cacador", "texto": "0."}
+{"ts": 1790691773.120924, "tipo": "llm_delta", "papel": "cacador", "texto": "0,"}
+{"ts": 1790691773.2161317, "tipo": "llm_delta", "papel": "cacador", "texto": " 'DF"}
+{"ts": 1790691773.3117504, "tipo": "llm_delta", "papel": "cacador", "texto": "') =="}
+{"ts": 1790691773.4063046, "tipo": "llm_delta", "papel": "cacador", "texto": " 2"}
+{"ts": 1790691773.502295, "tipo": "llm_delta", "papel": "cacador", "texto": "5."}
+{"ts": 1790691773.5994165, "tipo": "llm_delta", "papel": "cacador", "texto": "0\\n"}
+{"ts": 1790691773.696226, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\\"}
+{"ts": 1790691773.7894123, "tipo": "llm_delta", "papel": "cacador", "texto": "ndef test"}
+{"ts": 1790691773.8866072, "tipo": "llm_delta", "papel": "cacador", "texto": "_frete"}
+{"ts": 1790691773.9818666, "tipo": "llm_delta", "papel": "cacador", "texto": "_ou"}
+{"ts": 1790691774.0760949, "tipo": "llm_delta", "papel": "cacador", "texto": "tra_"}
+{"ts": 1790691774.1739938, "tipo": "llm_delta", "papel": "cacador", "texto": "uf():"}
+{"ts": 1790691774.2716126, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n"}
+{"ts": 1790691774.3595467, "tipo": "llm_delta", "papel": "cacador", "texto": "    assert"}
+{"ts": 1790691774.4615464, "tipo": "llm_delta", "papel": "cacador", "texto": " frete"}
+{"ts": 1790691774.5567153, "tipo": "llm_delta", "papel": "cacador", "texto": "(3"}
+{"ts": 1790691774.6519632, "tipo": "llm_delta", "papel": "cacador", "texto": "00"}
+{"ts": 1790691774.7495396, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691774.842981, "tipo": "llm_delta", "papel": "cacador", "texto": ", '"}
+{"ts": 1790691774.9367173, "tipo": "llm_delta", "papel": "cacador", "texto": "SP')"}
+{"ts": 1790691775.0314963, "tipo": "llm_delta", "papel": "cacador", "texto": " == "}
+{"ts": 1790691775.1265554, "tipo": "llm_delta", "papel": "cacador", "texto": "40"}
+{"ts": 1790691775.2204206, "tipo": "llm_delta", "papel": "cacador", "texto": ".0"}
+{"ts": 1790691775.3162036, "tipo": "llm_delta", "papel": "cacador", "texto": "\\n\","}
+{"ts": 1790691775.4103863, "tipo": "llm_delta", "papel": "cacador", "texto": " \"just"}
+{"ts": 1790691775.506317, "tipo": "llm_delta", "papel": "cacador", "texto": "ificativa"}
+{"ts": 1790691775.6012993, "tipo": "llm_delta", "papel": "cacador", "texto": "\": \""}
+{"ts": 1790691775.697134, "tipo": "llm_delta", "papel": "cacador", "texto": "Testa"}
+{"ts": 1790691775.797664, "tipo": "llm_delta", "papel": "cacador", "texto": " os limit"}
+{"ts": 1790691775.8852603, "tipo": "llm_delta", "papel": "cacador", "texto": "es do"}
+{"ts": 1790691775.987441, "tipo": "llm_delta", "papel": "cacador", "texto": " frete"}
+{"ts": 1790691776.082465, "tipo": "llm_delta", "papel": "cacador", "texto": " para GO"}
+{"ts": 1790691776.1739337, "tipo": "llm_delta", "papel": "cacador", "texto": ", DF"}
+{"ts": 1790691776.2720377, "tipo": "llm_delta", "papel": "cacador", "texto": " e outra"}
+{"ts": 1790691776.3673801, "tipo": "llm_delta", "papel": "cacador", "texto": " UF.\""}
+{"ts": 1790691776.4619284, "tipo": "llm_delta", "papel": "cacador", "texto": "}}"}
+{"ts": 1790691776.4634783, "tipo": "llm_fim", "papel": "cacador", "passo": 6, "tokens": 187, "tok_s": 21.0, "segundos": 9.4, "origem": "texto_json", "tokens_prompt": 2610}
+{"ts": 1790691776.4657252, "tipo": "ferramenta", "papel": "cacador", "nome": "enviar_teste", "argumentos": {"codigo": "from descontos import subtotal, total_pedido\n\ndef test_frete_go_acima_300():\n    assert frete(300.0, 'GO') == 0.0\n\n\ndef test_frete_go_300():\n    assert frete(300.0, 'GO') == 15.0\n\n\ndef test_frete_df():\n    assert frete(300.0, 'DF') == 25.0\n\n\ndef test_frete_outra_uf():\n    assert frete(300.0, 'SP') == 40.0\n", "justificativa": "Testa os limites do frete para GO, DF e outra UF."}}
+{"ts": 1790691777.6422641, "tipo": "resultado", "papel": "cacador", "nome": "enviar_teste", "repetida": false, "dados": {"matou": false, "motivo": "expectativa_errada", "detalhe": "todos os seus 4 testes FALHAM no código correto: as expectativas contradizem a especificação (docstrings). Recalcule os valores esperados pela docstring.", "tentativas_restantes": 0, "turno_encerrado": true, "funcoes_validas": [], "funcoes_alucinadas": ["test_frete_df", "test_frete_go_300", "test_frete_go_acima_300", "test_frete_outra_uf"]}, "texto": null}
+{"ts": 1790691777.6558218, "tipo": "rodada_fim", "rodada": 1, "vencedor": "mutante", "motivo": "Caçador esgotou as tentativas (última: expectativa_errada)", "placar": {"mutante": 1, "cacador": 0}, "mutacao": {"linha": 41, "descricao": "linha 41: 'return 25.0' -> 'return 24.99'", "evidencia": "frete(0.0, 'DF'): original=('ok', 25.0) mutante=('ok', 24.99)", "antiga": "        return 25.0", "nova": "        return 24.99"}}
+{"ts": 1790691777.6585088, "tipo": "rodada_inicio", "rodada": 2, "total": 3, "testes_na_suite": 1}
+{"ts": 1790691777.6585088, "tipo": "turno", "rodada": 2, "papel": "mutante", "modelo": "qwen2.5-coder:7b"}
+{"ts": 1790691777.6585088, "tipo": "pensando", "papel": "mutante", "passo": 1}
+{"ts": 1790691777.8414981, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691777.9378238, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691778.0334506, "tipo": "llm_delta", "papel": "mutante", "texto": " \"ler"}
+{"ts": 1790691778.1252506, "tipo": "llm_delta", "papel": "mutante", "texto": "_codigo\","}
+{"ts": 1790691778.2166505, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691778.3091958, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {"}
+{"ts": 1790691778.4002762, "tipo": "llm_delta", "papel": "mutante", "texto": "}}"}
+{"ts": 1790691778.4024203, "tipo": "llm_fim", "papel": "mutante", "passo": 1, "tokens": 13, "tok_s": 23.3, "segundos": 0.7, "origem": "texto_json", "tokens_prompt": 769}
+{"ts": 1790691778.40451, "tipo": "ferramenta", "papel": "mutante", "nome": "ler_codigo", "argumentos": {}}
+{"ts": 1790691778.410881, "tipo": "resultado", "papel": "mutante", "nome": "ler_codigo", "repetida": false, "dados": null, "texto": "  1| \"\"\"Regras de preço de uma distribuidora (campo de jogo da Arena).\"\"\"\n  2| \n  3| \n  4| def subtotal(itens):\n  5|     \"\"\"Soma preco * quantidade de cada item. Lista vazia -> 0.0.\"\"\"\n  6|     total = 0.0\n  7|     for item in itens:\n  8|         total += item[\"preco\"] * item[\"quantidade\"]\n  9|     return round(total, 2)\n 10| \n 11| \n 12| def desconto_volume(quantidade_total):\n 13|     \"\"\"Percentual de desconto por volume:\n 14|     >= 100 unidades -> 10%; >= 50 unidades -> 5%; abaixo de 50 -> 0%.\"\"\"\n 15|     if quantidade_total >= 100:\n 16|         return 0.10\n 17|     if quantidade_total >= 50:\n 18|         return 0.05\n 19|     return 0.0\n 20| \n 21| \n 22| def aplicar_cupom(valor, cupom):\n 23|     \"\"\"Cupons: 'PRIMEIRA10' tira 10% do valor; 'MENOS20' tira R$ 20,00 fixos\n 24|     somente se o valor for maior ou igual a R$ 100,00. Cupom desconhecido ou\n 25|     None nao altera o valor. O resultado nunca e negativo.\"\"\"\n 26|     if cupom == \"PRIMEIRA10\":\n 27|         valor = valor * 0.90\n 28|     elif cupom == \"MENOS20\" and valor >= 100:\n 29|         valor = valor - 20\n 30|     return round(max(valor, 0.0), 2)\n 31| \n 32| \n 33| def frete(subtotal_pedido, uf):\n 34|     \"\"\"Frete: gratis para GO com subtotal >= R$ 300,00. Senao: GO paga R$ 15,00,\n 35|     DF paga R$ 25,00 e qualquer outra UF paga R$ 40,00.\"\"\"\n 36|     if uf == \"GO\" and subtotal_pedido >= 300:\n 37|         return 0.0\n 38|     if uf == \"GO\":\n 39|         return 15.0\n 40|     if uf == \"DF\":\n 41|         return 25.0\n 42|     return 40.0\n 43| \n 44| \n 45| def total_pedido(itens, uf, cupom=None):\n 46|     \"\"\"Total = subtotal com desconto de volume, depois cupom, depois soma o frete.\n 47|     O frete e calculado sobre o subtotal ORIGINAL (antes dos descontos).\"\"\"\n 48|     base = subtotal(itens)\n 49|     quantidade = sum(item[\"quantidade\"] for item in itens)\n 50|     com_volume = base * (1 - desconto_volume(quantidade))\n 51|     com_cupom = aplicar_cupom(com_volume, cupom)\n 52|     return round(com_cupom + frete(base, uf), 2)\n\nLinhas que você pode alterar: [6, 7, 8, 9, 15, 16, 17, 18, 19, 26, 27, 28, 29, 30, 36, 37, 38, 39, 40, 41, 42, 48, 49, 50, 51, 52]"}
+{"ts": 1790691778.410881, "tipo": "pensando", "papel": "mutante", "passo": 2}
+{"ts": 1790691785.9197793, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691786.0195298, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691786.1126878, "tipo": "llm_delta", "papel": "mutante", "texto": " \"ler"}
+{"ts": 1790691786.2062135, "tipo": "llm_delta", "papel": "mutante", "texto": "_testes"}
+{"ts": 1790691786.2983456, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691786.3937645, "tipo": "llm_delta", "papel": "mutante", "texto": "arguments\":"}
+{"ts": 1790691786.4843411, "tipo": "llm_delta", "papel": "mutante", "texto": " {}}"}
+{"ts": 1790691786.5312512, "tipo": "llm_fim", "papel": "mutante", "passo": 2, "tokens": 14, "tok_s": 22.9, "segundos": 8.1, "origem": "texto_json", "tokens_prompt": 1715}
+{"ts": 1790691786.5338333, "tipo": "ferramenta", "papel": "mutante", "nome": "ler_testes", "argumentos": {}}
+{"ts": 1790691786.540204, "tipo": "resultado", "papel": "mutante", "nome": "ler_testes", "repetida": false, "dados": null, "texto": "# ===== test_base.py =====\n\"\"\"Suíte inicial propositalmente fraca: o Mutante começa com vantagem.\"\"\"\nfrom descontos import subtotal, total_pedido\n\n\ndef test_subtotal_simples():\n    assert subtotal([{\"preco\": 10.0, \"quantidade\": 3}]) == 30.0\n\n\ndef test_total_pedido_go_sem_cupom():\n    itens = [{\"preco\": 5.0, \"quantidade\": 10}]\n    assert total_pedido(itens, \"GO\") == 65.0\n"}
+{"ts": 1790691786.540204, "tipo": "pensando", "papel": "mutante", "passo": 3}
+{"ts": 1790691787.9237168, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691788.0174708, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691788.1199117, "tipo": "llm_delta", "papel": "mutante", "texto": " \"prop"}
+{"ts": 1790691788.2146647, "tipo": "llm_delta", "papel": "mutante", "texto": "or_mut"}
+{"ts": 1790691788.3091223, "tipo": "llm_delta", "papel": "mutante", "texto": "acao\","}
+{"ts": 1790691788.4042885, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691788.4997556, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {\""}
+{"ts": 1790691788.591282, "tipo": "llm_delta", "papel": "mutante", "texto": "numero_lin"}
+{"ts": 1790691788.683605, "tipo": "llm_delta", "papel": "mutante", "texto": "ha\":"}
+{"ts": 1790691788.7760797, "tipo": "llm_delta", "papel": "mutante", "texto": " 5"}
+{"ts": 1790691788.8661294, "tipo": "llm_delta", "papel": "mutante", "texto": "0,"}
+{"ts": 1790691788.9567115, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691789.0491092, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_original"}
+{"ts": 1790691789.1416616, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691789.2337666, "tipo": "llm_delta", "papel": "mutante", "texto": "base\","}
+{"ts": 1790691789.3254383, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691789.4173226, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_n"}
+{"ts": 1790691789.5109038, "tipo": "llm_delta", "papel": "mutante", "texto": "ovo\":"}
+{"ts": 1790691789.6040318, "tipo": "llm_delta", "papel": "mutante", "texto": " \"com"}
+{"ts": 1790691789.6952326, "tipo": "llm_delta", "papel": "mutante", "texto": "_volume\","}
+{"ts": 1790691789.7883954, "tipo": "llm_delta", "papel": "mutante", "texto": " \"just"}
+{"ts": 1790691789.8785882, "tipo": "llm_delta", "papel": "mutante", "texto": "ificativa"}
+{"ts": 1790691789.9700928, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691790.0617874, "tipo": "llm_delta", "papel": "mutante", "texto": "Alterar"}
+{"ts": 1790691790.1527836, "tipo": "llm_delta", "papel": "mutante", "texto": " 'base"}
+{"ts": 1790691790.2437565, "tipo": "llm_delta", "papel": "mutante", "texto": "' para"}
+{"ts": 1790691790.3350387, "tipo": "llm_delta", "papel": "mutante", "texto": " 'com"}
+{"ts": 1790691790.4268854, "tipo": "llm_delta", "papel": "mutante", "texto": "_volume'"}
+{"ts": 1790691790.519186, "tipo": "llm_delta", "papel": "mutante", "texto": " para alter"}
+{"ts": 1790691790.6156056, "tipo": "llm_delta", "papel": "mutante", "texto": "ar o"}
+{"ts": 1790691790.7075074, "tipo": "llm_delta", "papel": "mutante", "texto": " subtotal final"}
+{"ts": 1790691790.7916958, "tipo": "llm_delta", "papel": "mutante", "texto": ", pass"}
+{"ts": 1790691790.892064, "tipo": "llm_delta", "papel": "mutante", "texto": "ando em"}
+{"ts": 1790691790.9823549, "tipo": "llm_delta", "papel": "mutante", "texto": " testes"}
+{"ts": 1790691791.0781813, "tipo": "llm_delta", "papel": "mutante", "texto": " atuais"}
+{"ts": 1790691791.171304, "tipo": "llm_delta", "papel": "mutante", "texto": ".\"}}"}
+{"ts": 1790691791.219608, "tipo": "llm_fim", "papel": "mutante", "passo": 3, "tokens": 72, "tok_s": 21.9, "segundos": 4.7, "origem": "texto_json", "tokens_prompt": 1866}
+{"ts": 1790691791.2217226, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 50, "trecho_original": "base", "trecho_novo": "com_volume", "justificativa": "Alterar 'base' para 'com_volume' para alterar o subtotal final, passando em testes atuais."}}
+{"ts": 1790691792.5494602, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": false, "motivo": "morto_pela_suite", "detalhe": "os testes atuais já detectam esse bug:\n.F\n================================== FAILURES ===================================\nE   UnboundLocalError: cannot access local variable 'com_volume' where it is not associated with a value\n<sandbox>\\descontos.py:50: UnboundLocalError: cannot access local variable 'com_volume' where it is not associated with a value\n=========================== short test summary info ===========================\nFAILED test_base.py::test_total_pedido_go_sem_cupom - UnboundLocalError: cann...\n1 failed, 1 passed in 0.03s", "tentativas_restantes": 2, "turno_encerrado": false}, "texto": null}
+{"ts": 1790691792.5515451, "tipo": "pensando", "papel": "mutante", "passo": 4}
+{"ts": 1790691794.2555876, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691794.3568885, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691794.4499607, "tipo": "llm_delta", "papel": "mutante", "texto": " \"prop"}
+{"ts": 1790691794.5435853, "tipo": "llm_delta", "papel": "mutante", "texto": "or_mut"}
+{"ts": 1790691794.6379232, "tipo": "llm_delta", "papel": "mutante", "texto": "acao\","}
+{"ts": 1790691794.7316613, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691794.8283057, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {\""}
+{"ts": 1790691794.9272757, "tipo": "llm_delta", "papel": "mutante", "texto": "numero_lin"}
+{"ts": 1790691795.0209787, "tipo": "llm_delta", "papel": "mutante", "texto": "ha\":"}
+{"ts": 1790691795.1154044, "tipo": "llm_delta", "papel": "mutante", "texto": " 5"}
+{"ts": 1790691795.208415, "tipo": "llm_delta", "papel": "mutante", "texto": "0,"}
+{"ts": 1790691795.3027766, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691795.3962765, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_original"}
+{"ts": 1790691795.4917798, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691795.5856225, "tipo": "llm_delta", "papel": "mutante", "texto": "base\","}
+{"ts": 1790691795.6798205, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691795.7723227, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_n"}
+{"ts": 1790691795.8676388, "tipo": "llm_delta", "papel": "mutante", "texto": "ovo\":"}
+{"ts": 1790691795.963794, "tipo": "llm_delta", "papel": "mutante", "texto": " \"subtotal"}
+{"ts": 1790691796.0562878, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691796.1499116, "tipo": "llm_delta", "papel": "mutante", "texto": "justific"}
+{"ts": 1790691796.2432666, "tipo": "llm_delta", "papel": "mutante", "texto": "ativa\":"}
+{"ts": 1790691796.3362885, "tipo": "llm_delta", "papel": "mutante", "texto": " \"Alter"}
+{"ts": 1790691796.4304686, "tipo": "llm_delta", "papel": "mutante", "texto": "ar '"}
+{"ts": 1790691796.5248961, "tipo": "llm_delta", "papel": "mutante", "texto": "base'"}
+{"ts": 1790691796.6176536, "tipo": "llm_delta", "papel": "mutante", "texto": " para '"}
+{"ts": 1790691796.711822, "tipo": "llm_delta", "papel": "mutante", "texto": "subtotal'"}
+{"ts": 1790691796.8079789, "tipo": "llm_delta", "papel": "mutante", "texto": " para alter"}
+{"ts": 1790691796.900764, "tipo": "llm_delta", "papel": "mutante", "texto": "ar o"}
+{"ts": 1790691796.9972386, "tipo": "llm_delta", "papel": "mutante", "texto": " subtotal final"}
+{"ts": 1790691797.0939338, "tipo": "llm_delta", "papel": "mutante", "texto": ", mas"}
+{"ts": 1790691797.192646, "tipo": "llm_delta", "papel": "mutante", "texto": " não mud"}
+{"ts": 1790691797.2890847, "tipo": "llm_delta", "papel": "mutante", "texto": "ar o"}
+{"ts": 1790691797.3841412, "tipo": "llm_delta", "papel": "mutante", "texto": " comportamento"}
+{"ts": 1790691797.4783216, "tipo": "llm_delta", "papel": "mutante", "texto": ".\"}}"}
+{"ts": 1790691797.5271544, "tipo": "llm_fim", "papel": "mutante", "passo": 4, "tokens": 70, "tok_s": 21.4, "segundos": 5.0, "origem": "texto_json", "tokens_prompt": 2123}
+{"ts": 1790691797.5292487, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 50, "trecho_original": "base", "trecho_novo": "subtotal", "justificativa": "Alterar 'base' para 'subtotal' para alterar o subtotal final, mas não mudar o comportamento."}}
+{"ts": 1790691798.8552895, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": false, "motivo": "morto_pela_suite", "detalhe": "os testes atuais já detectam esse bug:\n.F\n================================== FAILURES ===================================\nE   TypeError: unsupported operand type(s) for *: 'function' and 'float'\n<sandbox>\\descontos.py:50: TypeError: unsupported operand type(s) for *: 'function' and 'float'\n=========================== short test summary info ===========================\nFAILED test_base.py::test_total_pedido_go_sem_cupom - TypeError: unsupported ...\n1 failed, 1 passed in 0.02s", "tentativas_restantes": 1, "turno_encerrado": false}, "texto": null}
+{"ts": 1790691798.8552895, "tipo": "pensando", "papel": "mutante", "passo": 5}
+{"ts": 1790691800.5675027, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691800.6776712, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691800.7729387, "tipo": "llm_delta", "papel": "mutante", "texto": " \"prop"}
+{"ts": 1790691800.868453, "tipo": "llm_delta", "papel": "mutante", "texto": "or_mut"}
+{"ts": 1790691800.9658294, "tipo": "llm_delta", "papel": "mutante", "texto": "acao\","}
+{"ts": 1790691801.062164, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691801.1591415, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {\""}
+{"ts": 1790691801.255129, "tipo": "llm_delta", "papel": "mutante", "texto": "numero_lin"}
+{"ts": 1790691801.3503678, "tipo": "llm_delta", "papel": "mutante", "texto": "ha\":"}
+{"ts": 1790691801.4443774, "tipo": "llm_delta", "papel": "mutante", "texto": " 4"}
+{"ts": 1790691801.5387416, "tipo": "llm_delta", "papel": "mutante", "texto": "9,"}
+{"ts": 1790691801.632323, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691801.7280133, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_original"}
+{"ts": 1790691801.8154502, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691801.9181933, "tipo": "llm_delta", "papel": "mutante", "texto": "base\","}
+{"ts": 1790691802.0135438, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691802.1095414, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_n"}
+{"ts": 1790691802.2045298, "tipo": "llm_delta", "papel": "mutante", "texto": "ovo\":"}
+{"ts": 1790691802.3024013, "tipo": "llm_delta", "papel": "mutante", "texto": " \"subtotal"}
+{"ts": 1790691802.3983786, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691802.4927511, "tipo": "llm_delta", "papel": "mutante", "texto": "justific"}
+{"ts": 1790691802.5884328, "tipo": "llm_delta", "papel": "mutante", "texto": "ativa\":"}
+{"ts": 1790691802.6846635, "tipo": "llm_delta", "papel": "mutante", "texto": " \"Alter"}
+{"ts": 1790691802.7806952, "tipo": "llm_delta", "papel": "mutante", "texto": "ar '"}
+{"ts": 1790691802.8760881, "tipo": "llm_delta", "papel": "mutante", "texto": "base'"}
+{"ts": 1790691802.9691997, "tipo": "llm_delta", "papel": "mutante", "texto": " para '"}
+{"ts": 1790691803.0653512, "tipo": "llm_delta", "papel": "mutante", "texto": "subtotal'"}
+{"ts": 1790691803.1620183, "tipo": "llm_delta", "papel": "mutante", "texto": " para alter"}
+{"ts": 1790691803.2581637, "tipo": "llm_delta", "papel": "mutante", "texto": "ar o"}
+{"ts": 1790691803.3578084, "tipo": "llm_delta", "papel": "mutante", "texto": " subtotal final"}
+{"ts": 1790691803.4531622, "tipo": "llm_delta", "papel": "mutante", "texto": ", mas"}
+{"ts": 1790691803.548928, "tipo": "llm_delta", "papel": "mutante", "texto": " não mud"}
+{"ts": 1790691803.6466415, "tipo": "llm_delta", "papel": "mutante", "texto": "ar o"}
+{"ts": 1790691803.7410104, "tipo": "llm_delta", "papel": "mutante", "texto": " comportamento"}
+{"ts": 1790691803.8370333, "tipo": "llm_delta", "papel": "mutante", "texto": ".\"}}"}
+{"ts": 1790691803.8863862, "tipo": "llm_fim", "papel": "mutante", "passo": 5, "tokens": 70, "tok_s": 21.1, "segundos": 5.0, "origem": "texto_json", "tokens_prompt": 2367}
+{"ts": 1790691803.889638, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 49, "trecho_original": "base", "trecho_novo": "subtotal", "justificativa": "Alterar 'base' para 'subtotal' para alterar o subtotal final, mas não mudar o comportamento."}}
+{"ts": 1790691803.898858, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": false, "motivo": "trecho_ambiguo", "detalhe": "o trecho 'base' aparece nas linhas [48, 50, 52]; indique a certa", "tentativas_restantes": 0, "turno_encerrado": true}, "texto": null}
+{"ts": 1790691803.9112296, "tipo": "rodada_fim", "rodada": 2, "vencedor": "cacador", "motivo": "Mutante esgotou as tentativas (última: trecho_ambiguo)", "placar": {"mutante": 1, "cacador": 1}, "mutacao": null}
+{"ts": 1790691803.9192011, "tipo": "rodada_inicio", "rodada": 3, "total": 3, "testes_na_suite": 1}
+{"ts": 1790691803.9204504, "tipo": "turno", "rodada": 3, "papel": "mutante", "modelo": "qwen2.5-coder:7b"}
+{"ts": 1790691803.9204504, "tipo": "pensando", "papel": "mutante", "passo": 1}
+{"ts": 1790691804.056774, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691804.1542726, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691804.2477465, "tipo": "llm_delta", "papel": "mutante", "texto": " \"ler"}
+{"ts": 1790691804.341595, "tipo": "llm_delta", "papel": "mutante", "texto": "_codigo\","}
+{"ts": 1790691804.436023, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691804.5287137, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {}"}
+{"ts": 1790691804.6184957, "tipo": "llm_delta", "papel": "mutante", "texto": "}\n{\""}
+{"ts": 1790691804.7075763, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691804.797699, "tipo": "llm_delta", "papel": "mutante", "texto": " \"ler"}
+{"ts": 1790691804.8856702, "tipo": "llm_delta", "papel": "mutante", "texto": "_testes"}
+{"ts": 1790691804.9745693, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691805.0643892, "tipo": "llm_delta", "papel": "mutante", "texto": "arguments\":"}
+{"ts": 1790691805.1541226, "tipo": "llm_delta", "papel": "mutante", "texto": " {}}\n"}
+{"ts": 1790691805.2446673, "tipo": "llm_delta", "papel": "mutante", "texto": "{\"name"}
+{"ts": 1790691805.3348331, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691805.426091, "tipo": "llm_delta", "papel": "mutante", "texto": "propor"}
+{"ts": 1790691805.5211487, "tipo": "llm_delta", "papel": "mutante", "texto": "_mutacao"}
+{"ts": 1790691805.613568, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691805.7060084, "tipo": "llm_delta", "papel": "mutante", "texto": "arguments\":"}
+{"ts": 1790691805.798476, "tipo": "llm_delta", "papel": "mutante", "texto": " {\"numero"}
+{"ts": 1790691805.8901045, "tipo": "llm_delta", "papel": "mutante", "texto": "_linha"}
+{"ts": 1790691805.984894, "tipo": "llm_delta", "papel": "mutante", "texto": "\": "}
+{"ts": 1790691806.0823143, "tipo": "llm_delta", "papel": "mutante", "texto": "42"}
+{"ts": 1790691806.1733043, "tipo": "llm_delta", "papel": "mutante", "texto": ", \""}
+{"ts": 1790691806.264006, "tipo": "llm_delta", "papel": "mutante", "texto": "trecho"}
+{"ts": 1790691806.3581796, "tipo": "llm_delta", "papel": "mutante", "texto": "_original\":"}
+{"ts": 1790691806.450284, "tipo": "llm_delta", "papel": "mutante", "texto": " \"base"}
+{"ts": 1790691806.543751, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691806.635263, "tipo": "llm_delta", "papel": "mutante", "texto": "trecho"}
+{"ts": 1790691806.7279534, "tipo": "llm_delta", "papel": "mutante", "texto": "_novo"}
+{"ts": 1790691806.8200233, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691806.9109135, "tipo": "llm_delta", "papel": "mutante", "texto": "com_volume"}
+{"ts": 1790691807.0019746, "tipo": "llm_delta", "papel": "mutante", "texto": "\", \""}
+{"ts": 1790691807.0918503, "tipo": "llm_delta", "papel": "mutante", "texto": "justific"}
+{"ts": 1790691807.1800554, "tipo": "llm_delta", "papel": "mutante", "texto": "ativa\":"}
+{"ts": 1790691807.2718036, "tipo": "llm_delta", "papel": "mutante", "texto": " \"M"}
+{"ts": 1790691807.361199, "tipo": "llm_delta", "papel": "mutante", "texto": "uda a"}
+{"ts": 1790691807.4498067, "tipo": "llm_delta", "papel": "mutante", "texto": " base do"}
+{"ts": 1790691807.537973, "tipo": "llm_delta", "papel": "mutante", "texto": " cál"}
+{"ts": 1790691807.6277828, "tipo": "llm_delta", "papel": "mutante", "texto": "culo de"}
+{"ts": 1790691807.7164783, "tipo": "llm_delta", "papel": "mutante", "texto": " desconto"}
+{"ts": 1790691807.8048766, "tipo": "llm_delta", "papel": "mutante", "texto": " para incl"}
+{"ts": 1790691807.8936346, "tipo": "llm_delta", "papel": "mutante", "texto": "uir volume"}
+{"ts": 1790691807.9819386, "tipo": "llm_delta", "papel": "mutante", "texto": ", poss"}
+{"ts": 1790691808.0710933, "tipo": "llm_delta", "papel": "mutante", "texto": "ivelmente"}
+{"ts": 1790691808.159904, "tipo": "llm_delta", "papel": "mutante", "texto": " aumentando"}
+{"ts": 1790691808.249957, "tipo": "llm_delta", "papel": "mutante", "texto": " os des"}
+{"ts": 1790691808.3404477, "tipo": "llm_delta", "papel": "mutante", "texto": "contos"}
+{"ts": 1790691808.4278142, "tipo": "llm_delta", "papel": "mutante", "texto": ".\"}}"}
+{"ts": 1790691808.473544, "tipo": "llm_fim", "papel": "mutante", "passo": 1, "tokens": 98, "tok_s": 22.2, "segundos": 4.6, "origem": "texto_json", "tokens_prompt": 769}
+{"ts": 1790691808.4751103, "tipo": "ferramenta", "papel": "mutante", "nome": "ler_codigo", "argumentos": {}}
+{"ts": 1790691808.4819286, "tipo": "resultado", "papel": "mutante", "nome": "ler_codigo", "repetida": false, "dados": null, "texto": "  1| \"\"\"Regras de preço de uma distribuidora (campo de jogo da Arena).\"\"\"\n  2| \n  3| \n  4| def subtotal(itens):\n  5|     \"\"\"Soma preco * quantidade de cada item. Lista vazia -> 0.0.\"\"\"\n  6|     total = 0.0\n  7|     for item in itens:\n  8|         total += item[\"preco\"] * item[\"quantidade\"]\n  9|     return round(total, 2)\n 10| \n 11| \n 12| def desconto_volume(quantidade_total):\n 13|     \"\"\"Percentual de desconto por volume:\n 14|     >= 100 unidades -> 10%; >= 50 unidades -> 5%; abaixo de 50 -> 0%.\"\"\"\n 15|     if quantidade_total >= 100:\n 16|         return 0.10\n 17|     if quantidade_total >= 50:\n 18|         return 0.05\n 19|     return 0.0\n 20| \n 21| \n 22| def aplicar_cupom(valor, cupom):\n 23|     \"\"\"Cupons: 'PRIMEIRA10' tira 10% do valor; 'MENOS20' tira R$ 20,00 fixos\n 24|     somente se o valor for maior ou igual a R$ 100,00. Cupom desconhecido ou\n 25|     None nao altera o valor. O resultado nunca e negativo.\"\"\"\n 26|     if cupom == \"PRIMEIRA10\":\n 27|         valor = valor * 0.90\n 28|     elif cupom == \"MENOS20\" and valor >= 100:\n 29|         valor = valor - 20\n 30|     return round(max(valor, 0.0), 2)\n 31| \n 32| \n 33| def frete(subtotal_pedido, uf):\n 34|     \"\"\"Frete: gratis para GO com subtotal >= R$ 300,00. Senao: GO paga R$ 15,00,\n 35|     DF paga R$ 25,00 e qualquer outra UF paga R$ 40,00.\"\"\"\n 36|     if uf == \"GO\" and subtotal_pedido >= 300:\n 37|         return 0.0\n 38|     if uf == \"GO\":\n 39|         return 15.0\n 40|     if uf == \"DF\":\n 41|         return 25.0\n 42|     return 40.0\n 43| \n 44| \n 45| def total_pedido(itens, uf, cupom=None):\n 46|     \"\"\"Total = subtotal com desconto de volume, depois cupom, depois soma o frete.\n 47|     O frete e calculado sobre o subtotal ORIGINAL (antes dos descontos).\"\"\"\n 48|     base = subtotal(itens)\n 49|     quantidade = sum(item[\"quantidade\"] for item in itens)\n 50|     com_volume = base * (1 - desconto_volume(quantidade))\n 51|     com_cupom = aplicar_cupom(com_volume, cupom)\n 52|     return round(com_cupom + frete(base, uf), 2)\n\nLinhas que você pode alterar: [6, 7, 8, 9, 15, 16, 17, 18, 19, 26, 27, 28, 29, 30, 36, 37, 38, 39, 40, 41, 42, 48, 49, 50, 51, 52]"}
+{"ts": 1790691808.483872, "tipo": "ferramenta", "papel": "mutante", "nome": "ler_testes", "argumentos": {}}
+{"ts": 1790691808.486728, "tipo": "resultado", "papel": "mutante", "nome": "ler_testes", "repetida": false, "dados": null, "texto": "# ===== test_base.py =====\n\"\"\"Suíte inicial propositalmente fraca: o Mutante começa com vantagem.\"\"\"\nfrom descontos import subtotal, total_pedido\n\n\ndef test_subtotal_simples():\n    assert subtotal([{\"preco\": 10.0, \"quantidade\": 3}]) == 30.0\n\n\ndef test_total_pedido_go_sem_cupom():\n    itens = [{\"preco\": 5.0, \"quantidade\": 10}]\n    assert total_pedido(itens, \"GO\") == 65.0\n"}
+{"ts": 1790691808.486728, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 42, "trecho_original": "base", "trecho_novo": "com_volume", "justificativa": "Muda a base do cálculo de desconto para incluir volume, possivelmente aumentando os descontos."}}
+{"ts": 1790691808.4984202, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": false, "motivo": "trecho_ambiguo", "detalhe": "o trecho 'base' aparece nas linhas [48, 50, 52]; indique a certa", "tentativas_restantes": 2, "turno_encerrado": false}, "texto": null}
+{"ts": 1790691808.4992876, "tipo": "pensando", "papel": "mutante", "passo": 2}
+{"ts": 1790691817.6536129, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691817.7562861, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691817.8488803, "tipo": "llm_delta", "papel": "mutante", "texto": " \"prop"}
+{"ts": 1790691817.941018, "tipo": "llm_delta", "papel": "mutante", "texto": "or_mut"}
+{"ts": 1790691818.0350187, "tipo": "llm_delta", "papel": "mutante", "texto": "acao\","}
+{"ts": 1790691818.1263757, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691818.2197845, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {\""}
+{"ts": 1790691818.314909, "tipo": "llm_delta", "papel": "mutante", "texto": "numero_lin"}
+{"ts": 1790691818.4073482, "tipo": "llm_delta", "papel": "mutante", "texto": "ha\":"}
+{"ts": 1790691818.499096, "tipo": "llm_delta", "papel": "mutante", "texto": " 4"}
+{"ts": 1790691818.592136, "tipo": "llm_delta", "papel": "mutante", "texto": "9,"}
+{"ts": 1790691818.6839209, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691818.7748713, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_original"}
+{"ts": 1790691818.8663805, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691818.9585714, "tipo": "llm_delta", "papel": "mutante", "texto": "base\","}
+{"ts": 1790691819.0513322, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691819.1506941, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_n"}
+{"ts": 1790691819.2430267, "tipo": "llm_delta", "papel": "mutante", "texto": "ovo\":"}
+{"ts": 1790691819.3391886, "tipo": "llm_delta", "papel": "mutante", "texto": " \"com"}
+{"ts": 1790691819.4317772, "tipo": "llm_delta", "papel": "mutante", "texto": "_volume\","}
+{"ts": 1790691819.5275826, "tipo": "llm_delta", "papel": "mutante", "texto": " \"just"}
+{"ts": 1790691819.6208255, "tipo": "llm_delta", "papel": "mutante", "texto": "ificativa"}
+{"ts": 1790691819.715469, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691819.8084228, "tipo": "llm_delta", "papel": "mutante", "texto": "Muda"}
+{"ts": 1790691819.9019566, "tipo": "llm_delta", "papel": "mutante", "texto": " a base"}
+{"ts": 1790691819.9941516, "tipo": "llm_delta", "papel": "mutante", "texto": " do c"}
+{"ts": 1790691820.0900908, "tipo": "llm_delta", "papel": "mutante", "texto": "álculo"}
+{"ts": 1790691820.183462, "tipo": "llm_delta", "papel": "mutante", "texto": " de des"}
+{"ts": 1790691820.2771976, "tipo": "llm_delta", "papel": "mutante", "texto": "conto para"}
+{"ts": 1790691820.372065, "tipo": "llm_delta", "papel": "mutante", "texto": " incluir"}
+{"ts": 1790691820.466801, "tipo": "llm_delta", "papel": "mutante", "texto": " volume,"}
+{"ts": 1790691820.559805, "tipo": "llm_delta", "papel": "mutante", "texto": " possivel"}
+{"ts": 1790691820.6530364, "tipo": "llm_delta", "papel": "mutante", "texto": "mente aument"}
+{"ts": 1790691820.747564, "tipo": "llm_delta", "papel": "mutante", "texto": "ando os"}
+{"ts": 1790691820.8428693, "tipo": "llm_delta", "papel": "mutante", "texto": " descont"}
+{"ts": 1790691820.935797, "tipo": "llm_delta", "papel": "mutante", "texto": "os.\""}
+{"ts": 1790691821.0302505, "tipo": "llm_delta", "papel": "mutante", "texto": "}}"}
+{"ts": 1790691821.0323894, "tipo": "llm_fim", "papel": "mutante", "passo": 2, "tokens": 73, "tok_s": 21.6, "segundos": 12.5, "origem": "texto_json", "tokens_prompt": 2018}
+{"ts": 1790691821.036033, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 49, "trecho_original": "base", "trecho_novo": "com_volume", "justificativa": "Muda a base do cálculo de desconto para incluir volume, possivelmente aumentando os descontos."}}
+{"ts": 1790691821.0446615, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": false, "motivo": "trecho_ambiguo", "detalhe": "o trecho 'base' aparece nas linhas [48, 50, 52]; indique a certa", "tentativas_restantes": 1, "turno_encerrado": false}, "texto": null}
+{"ts": 1790691821.0466294, "tipo": "pensando", "papel": "mutante", "passo": 3}
+{"ts": 1790691821.9497192, "tipo": "llm_delta", "papel": "mutante", "texto": "{\""}
+{"ts": 1790691822.048377, "tipo": "llm_delta", "papel": "mutante", "texto": "name\":"}
+{"ts": 1790691822.1426332, "tipo": "llm_delta", "papel": "mutante", "texto": " \"prop"}
+{"ts": 1790691822.238518, "tipo": "llm_delta", "papel": "mutante", "texto": "or_mut"}
+{"ts": 1790691822.3328373, "tipo": "llm_delta", "papel": "mutante", "texto": "acao\","}
+{"ts": 1790691822.4254308, "tipo": "llm_delta", "papel": "mutante", "texto": " \"arguments"}
+{"ts": 1790691822.5214863, "tipo": "llm_delta", "papel": "mutante", "texto": "\": {\""}
+{"ts": 1790691822.6154873, "tipo": "llm_delta", "papel": "mutante", "texto": "numero_lin"}
+{"ts": 1790691822.709955, "tipo": "llm_delta", "papel": "mutante", "texto": "ha\":"}
+{"ts": 1790691822.803376, "tipo": "llm_delta", "papel": "mutante", "texto": " 5"}
+{"ts": 1790691822.8961067, "tipo": "llm_delta", "papel": "mutante", "texto": "1,"}
+{"ts": 1790691822.989961, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691823.083369, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_original"}
+{"ts": 1790691823.176544, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691823.269382, "tipo": "llm_delta", "papel": "mutante", "texto": "base\","}
+{"ts": 1790691823.362702, "tipo": "llm_delta", "papel": "mutante", "texto": " \"tre"}
+{"ts": 1790691823.4569802, "tipo": "llm_delta", "papel": "mutante", "texto": "cho_n"}
+{"ts": 1790691823.5539582, "tipo": "llm_delta", "papel": "mutante", "texto": "ovo\":"}
+{"ts": 1790691823.649678, "tipo": "llm_delta", "papel": "mutante", "texto": " \"com"}
+{"ts": 1790691823.7422955, "tipo": "llm_delta", "papel": "mutante", "texto": "_volume\","}
+{"ts": 1790691823.8370652, "tipo": "llm_delta", "papel": "mutante", "texto": " \"just"}
+{"ts": 1790691823.930326, "tipo": "llm_delta", "papel": "mutante", "texto": "ificativa"}
+{"ts": 1790691824.0271585, "tipo": "llm_delta", "papel": "mutante", "texto": "\": \""}
+{"ts": 1790691824.122431, "tipo": "llm_delta", "papel": "mutante", "texto": "Muda"}
+{"ts": 1790691824.2172003, "tipo": "llm_delta", "papel": "mutante", "texto": " a base"}
+{"ts": 1790691824.3117254, "tipo": "llm_delta", "papel": "mutante", "texto": " do c"}
+{"ts": 1790691824.4058905, "tipo": "llm_delta", "papel": "mutante", "texto": "álculo"}
+{"ts": 1790691824.4985316, "tipo": "llm_delta", "papel": "mutante", "texto": " de des"}
+{"ts": 1790691824.5937705, "tipo": "llm_delta", "papel": "mutante", "texto": "conto para"}
+{"ts": 1790691824.6887634, "tipo": "llm_delta", "papel": "mutante", "texto": " incluir"}
+{"ts": 1790691824.7823374, "tipo": "llm_delta", "papel": "mutante", "texto": " volume,"}
+{"ts": 1790691824.8769011, "tipo": "llm_delta", "papel": "mutante", "texto": " possivel"}
+{"ts": 1790691824.9734926, "tipo": "llm_delta", "papel": "mutante", "texto": "mente aument"}
+{"ts": 1790691825.0672736, "tipo": "llm_delta", "papel": "mutante", "texto": "ando os"}
+{"ts": 1790691825.160565, "tipo": "llm_delta", "papel": "mutante", "texto": " descont"}
+{"ts": 1790691825.2555804, "tipo": "llm_delta", "papel": "mutante", "texto": "os.\""}
+{"ts": 1790691825.3509176, "tipo": "llm_delta", "papel": "mutante", "texto": "}}"}
+{"ts": 1790691825.3520722, "tipo": "llm_fim", "papel": "mutante", "passo": 3, "tokens": 73, "tok_s": 21.5, "segundos": 4.3, "origem": "texto_json", "tokens_prompt": 2180}
+{"ts": 1790691825.3547258, "tipo": "ferramenta", "papel": "mutante", "nome": "propor_mutacao", "argumentos": {"numero_linha": 51, "trecho_original": "base", "trecho_novo": "com_volume", "justificativa": "Muda a base do cálculo de desconto para incluir volume, possivelmente aumentando os descontos."}}
+{"ts": 1790691825.3610766, "tipo": "resultado", "papel": "mutante", "nome": "propor_mutacao", "repetida": false, "dados": {"aceita": false, "motivo": "trecho_ambiguo", "detalhe": "o trecho 'base' aparece nas linhas [48, 50, 52]; indique a certa", "tentativas_restantes": 0, "turno_encerrado": true}, "texto": null}
+{"ts": 1790691825.370502, "tipo": "rodada_fim", "rodada": 3, "vencedor": "cacador", "motivo": "Mutante esgotou as tentativas (última: trecho_ambiguo)", "placar": {"mutante": 1, "cacador": 2}, "mutacao": null}
+{"ts": 1790691825.5529408, "tipo": "partida_fim", "resumo": {"placar": {"mutante": 1, "cacador": 2}, "rodadas": 3, "duracao_s": 147.5, "agentes": {"mutante": {"modelo": "qwen2.5-coder:7b", "chamadas_llm": 11, "tokens_gerados": 604, "tokens_por_s_medio": 22.1, "segundos_pensando": 75.5, "chamadas_nativas": 0, "chamadas_via_texto_json": 11, "respostas_sem_ferramenta": 0}, "cacador": {"modelo": "qwen2.5-coder:7b", "chamadas_llm": 6, "tokens_gerados": 704, "tokens_por_s_medio": 22.1, "segundos_pensando": 51.1, "chamadas_nativas": 0, "chamadas_via_texto_json": 6, "respostas_sem_ferramenta": 0}}, "rejeicoes_do_arbitro": {"teste_rejeitado:nao_detectou": 1, "teste_rejeitado:expectativa_errada": 2, "mutacao_rejeitada:morto_pela_suite": 2, "mutacao_rejeitada:trecho_ambiguo": 4}, "testes_alucinados_descartados": 8, "testes_enviados_total": 8, "ferramentas_bloqueadas": 0, "limites_de_passos": 0, "mutacoes_aceitas": ["linha 41: 'return 25.0' -> 'return 24.99'"], "testes_na_suite_final": 1}}
